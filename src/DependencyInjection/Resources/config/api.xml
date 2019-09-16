@@ -1,0 +1,20 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+  <services>
+    <service id="api_platform.serializer" alias="serializer" />
+
+    <service id="api_platform.action.entrypoint" class="Drupal\api_platform\Core\Action\EntrypointAction" public="true">
+      <argument type="service" id="api_platform.metadata.resource.name_collection_factory" />
+    </service>
+
+    <service id="api_platform.formats_provider" class="Drupal\api_platform\Core\Api\FormatsProvider">
+      <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
+      <argument>%api_platform.formats%</argument>
+    </service>
+
+  </services>
+</container>

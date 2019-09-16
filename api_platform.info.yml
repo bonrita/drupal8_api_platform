@@ -1,0 +1,9 @@
+name: api_platform
+type: module
+description: 'Provides Jsonld hydra rest api.'
+package: Api platform
+
+core: '8.x'
+
+dependencies:
+  - drupal:serialization

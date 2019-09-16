@@ -1,0 +1,16 @@
+swagger_ui:
+  version: VERSION
+  css:
+    layout:
+      css/swagger-ui/swagger-ui.css: {}
+  js:
+    js/swagger-ui/swagger-ui-bundle.js: {}
+    js/swagger-ui/swagger-ui-standalone-preset.js: {}
+    js/init-swagger-ui.js: {}
+
+general:
+  version: VERSION
+  css:
+    layout:
+      css/style.css: {}
+

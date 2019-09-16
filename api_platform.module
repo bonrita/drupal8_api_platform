@@ -1,0 +1,23 @@
+<?php
+
+/**
+ * Implements hook_theme().
+ */
+function api_platform_theme() {
+  return [
+    'swagger_ui_index' => [
+      'variables' => [
+        'data' => NULL,
+      ],
+    ],
+  ];
+}
+
+/**
+ * Implements hook_preprocess().
+ */
+function template_preprocess_swagger_ui_index(array &$variables) {
+  $variables['image_path'] = drupal_get_path('module', 'api_platform').'/images';
+  $variables['css_path'] = drupal_get_path('module', 'api_platform').'/css';
+  $variables['js_path'] = drupal_get_path('module', 'api_platform').'/js';
+}

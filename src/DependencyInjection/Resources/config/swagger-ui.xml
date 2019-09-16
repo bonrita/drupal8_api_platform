@@ -1,0 +1,40 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+  <services>
+
+    <service id="api_platform.swagger.listener.ui" class="Drupal\api_platform\EventListener\SwaggerUiListener">
+      <tag name="event_subscriber"/>
+    </service>
+
+    <service id="api_platform.swagger.action.ui" class="Drupal\api_platform\Core\Action\SwaggerUiAction" public="true">
+      <argument type="service" id="api_platform.metadata.resource.name_collection_factory" />
+      <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
+      <argument type="service" id="api_platform.serializer" />
+      <argument type="service" id="twig" />
+      <argument type="service" id="router.no_access_checks" />
+      <argument>%api_platform.title%</argument>
+      <argument>%api_platform.description%</argument>
+      <argument>%api_platform.version%</argument>
+      <argument type="service" id="api_platform.formats_provider" />
+      <argument>%api_platform.oauth.enabled%</argument>
+      <argument>%api_platform.oauth.client_id%</argument>
+      <argument>%api_platform.oauth.client_secret%</argument>
+      <argument>%api_platform.oauth.type%</argument>
+      <argument>%api_platform.oauth.flow%</argument>
+      <argument>%api_platform.oauth.token_url%</argument>
+      <argument>%api_platform.oauth.authorization_url%</argument>
+      <argument>%api_platform.oauth.scopes%</argument>
+      <argument>%api_platform.show_webby%</argument>
+      <argument>%api_platform.enable_swagger_ui%</argument>
+      <argument>%api_platform.enable_re_doc%</argument>
+      <argument>%api_platform.graphql.enabled%</argument>
+      <argument type="service" id="renderer"/>
+    </service>
+
+  </services>
+
+</container>

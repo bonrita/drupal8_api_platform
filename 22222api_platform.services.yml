@@ -1,0 +1,59 @@
+#parameters:
+#  api_platform.title: ''
+#  api_platform.description: ''
+
+
+
+services:
+
+#Routes
+#  api_platform.action.entrypoint:
+#    class: Drupal\api_platform\Core\Action\EntrypointAction
+#    arguments: ['@api_platform.metadata.resource.name_collection_factory']
+#    public: true
+
+
+#Api
+#  api_platform.serializer:
+#    alias: serializer
+
+
+#xml
+#  api_platform.metadata.resource.name_collection_factory:
+#    alias: api_platform.metadata.resource.name_collection_factory.xml
+
+#  api_platform.metadata.resource.metadata_factory:
+#    alias: api_platform.metadata.resource.metadata_factory.xml
+
+#  api_platform.metadata.resource.name_collection_factory.xml:
+#    class: Drupal\api_platform\Core\Metadata\Resource\Factory\ExtractorResourceNameCollectionFactory
+#    arguments: ['@api_platform.metadata.extractor.xml']
+#    public: false
+
+#  api_platform.metadata.extractor.xml:
+#    class: Drupal\api_platform\Core\Metadata\Extractor\XmlExtractor
+#    arguments:
+#      - []
+#      - '@service_container'
+#    public: false
+
+#  api_platform.metadata.resource.metadata_factory.xml:
+#    class: Drupal\api_platform\Core\Metadata\Resource\Factory\ExtractorResourceMetadataFactory
+#    arguments: ['@api_platform.metadata.extractor.xml']
+
+
+#Swagger-ui
+#  api_platform.swagger.listener.ui:
+#    class: Drupal\api_platform\EventListener\SwaggerUiListener
+#    tags:
+#      - { name: event_subscriber }
+
+#  api_platform.swagger.action.ui:
+#    class: Drupal\api_platform\Core\Action\SwaggerUiAction
+#    arguments:
+#      - '@api_platform.metadata.resource.name_collection_factory'
+#      - '@api_platform.metadata.resource.metadata_factory'
+#      - '@api_platform.serializer'
+#      - '@twig'
+#      - '@router.no_access_checks'
+#      - '%api_platform.title%'
