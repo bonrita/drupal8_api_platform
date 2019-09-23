@@ -6,6 +6,7 @@ namespace Drupal\api_platform;
 
 
 use Drupal\api_platform\DependencyInjection\Compiler\ConfigPass;
+use Drupal\api_platform\DependencyInjection\Compiler\FilterPass;
 use Drupal\Core\DependencyInjection\ContainerBuilder;
 use Drupal\Core\DependencyInjection\ServiceProviderBase;
 
@@ -15,6 +16,9 @@ class ApiPlatformServiceProvider extends ServiceProviderBase {
     parent::register($container);
 
     $container->addCompilerPass(new ConfigPass());
+    $container->addCompilerPass(new FilterPass());
+
+
 
 //    if ($container->hasDefinition('config.factory')) {
 //      $container->get('config.factory')->get('system.site')->get('name');

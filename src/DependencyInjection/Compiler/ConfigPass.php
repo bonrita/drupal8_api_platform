@@ -12,6 +12,7 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
+use Symfony\Component\DependencyInjection\Parameter;
 
 class ConfigPass implements CompilerPassInterface{
 
@@ -36,11 +37,19 @@ class ConfigPass implements CompilerPassInterface{
     $this->registerMetadataConfiguration($container, $config, $loader);
     $this->registerSwaggerConfiguration($container, $config, $loader);
     $this->registerOAuthConfiguration($container, $config);
+    $this->registerJsonLdHydraConfiguration($container, $formats, $loader, $config['enable_docs']);
     $this->registerGraphQlConfiguration($container, $config, $loader);
+//    $this->registerCacheConfiguration($container, $config);
   }
 
   private function registerCommonConfiguration(ContainerBuilder $container, $config, XmlFileLoader $loader, $formats) {
+    $loader->load('symfony.xml');
+    $loader->load('drupal.xml');
+
     $loader->load('api.xml');
+    $loader->load('data_provider.xml');
+    $loader->load('filter.xml');
+
 
     $container->setParameter('api_platform.enable_entrypoint', $config['enable_entrypoint']);
     $container->setParameter('api_platform.enable_docs', $config['enable_docs']);
@@ -62,10 +71,12 @@ class ConfigPass implements CompilerPassInterface{
     $container->setParameter('api_platform.collection.pagination.partial_parameter_name', $config['collection']['pagination']['partial_parameter_name']);
     $container->setParameter('api_platform.collection.pagination', $config['collection']['pagination']);
 
+    $container->setAlias('api_platform.path_segment_name_generator', $config['path_segment_name_generator']);
+
   }
 
   private function registerMetadataConfiguration(ContainerBuilder $container, array $config, XmlFileLoader $loader):void {
-//    $loader->load('metadata/metadata.xml');
+    $loader->load('metadata/metadata.xml');
     $loader->load('metadata/xml.xml');
   }
 
@@ -83,7 +94,7 @@ class ConfigPass implements CompilerPassInterface{
       return;
     }
 
-//    $loader->load('swagger.xml');
+    $loader->load('swagger.xml');
 
     if ($config['enable_swagger_ui'] || $config['enable_re_doc']) {
       $loader->load('swagger-ui.xml');
@@ -142,5 +153,22 @@ class ConfigPass implements CompilerPassInterface{
 
     return (bool) $container->getParameterBag()->resolveValue($config['enabled']);
   }
+
+  private function registerJsonLdHydraConfiguration(ContainerBuilder $container, array $formats, XmlFileLoader $loader, bool $docEnabled): void
+  {
+    if (!isset($formats['jsonld'])) {
+      return;
+    }
+
+    $loader->load('jsonld.xml');
+    $loader->load('hydra.xml');
+  }
+
+  private function registerCacheConfiguration(ContainerBuilder $container, array $config)
+  {
+    $version = new Parameter('container.build_id');
+    $container->getDefinition('cache.system.recorder_inner')->replaceArgument(2, $version);
+  }
+
 
 }

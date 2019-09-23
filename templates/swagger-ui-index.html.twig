@@ -11,7 +11,7 @@
     {% endblock %}
 
 {#     json_encode(65) is for JSON_UNESCAPED_SLASHES|JSON_HEX_TAG to avoid JS XSS #}
-{#    <script id="swagger-data" type="application/json">{{ swagger_data|json_encode(65)|raw }}</script>#}
+    <script id="swagger-data" type="application/json">{{ data.swagger_data|json_encode(65)|raw }}</script>
 </head>
 
 <body>
@@ -63,23 +63,24 @@
     <div class="information-container wrapper">
         <div class="info">
             Available formats:
-            {% for format in formats|keys %}
-{#                <a href="{{ path(app.request.attributes.get('_route'), app.request.attributes.get('_route_params')|merge({'_format': format})) }}">{{ format }}</a>#}
+            {% for format in data.formats|keys %}
+{#              {{ devel_breakpoint() }}#}
+                <a href="{{ path(request.attributes.get('_route'), request.attributes.get('_route_params')|merge({'_format': format, '_format_route': true, '_route_format' : format})) }}">{{ format }}</a>
             {% endfor %}
             <br>
             Other API docs:
-{#            {% set active_ui = app.request.get('ui', 'swagger_ui') %}#}
-{#            {% if swaggerUiEnabled and active_ui != 'swagger_ui' %}<a href="{{ path('api_entrypoint') }}">Swagger UI</a>{% endif %}#}
-{#            {% if reDocEnabled and active_ui != 're_doc' %}<a href="{{ path('api_entrypoint', {'ui': 're_doc'}) }}">ReDoc</a>{% endif %}#}
-{#            <a href="{% if graphqlEnabled %}{{ path('api_graphql_entrypoint') }}{% else %}javascript:alert('GraphQL support is not enabled, see https://api-platform.com/docs/core/graphql/'){% endif %}">GraphiQL</a>#}
+            {% set active_ui = request.get('ui', 'swagger_ui') %}
+            {% if data.swaggerUiEnabled and active_ui != 'swagger_ui' %}<a href="{{ path('api_platform.api_entrypoint') }}">Swagger UI</a>{% endif %}
+            {% if data.reDocEnabled and active_ui != 're_doc' %}<a href="{{ path('api_platform.api_entrypoint', {'ui': 're_doc'}) }}">ReDoc</a>{% endif %}
+            <a href="{% if data.graphqlEnabled %}{{ path('api_graphql_entrypoint') }}{% else %}javascript:alert('GraphQL support is not enabled, see https://api-platform.com/docs/core/graphql/'){% endif %}">GraphiQL</a>
         </div>
     </div>
 </div>
 
 {% block javascript %}
-{% if (data.reDocEnabled and not data.swaggerUiEnabled) or (data.reDocEnabled and 're_doc' == data.active_ui) %}
-    <script src="{{ asset('bundles/apiplatform/redoc/redoc.standalone.js') }}"></script>
-    <script src="{{ asset('bundles/apiplatform/init-redoc-ui.js') }}"></script>
+{% if (data.reDocEnabled and not data.swaggerUiEnabled) or (data.reDocEnabled and 're_doc' == active_ui) %}
+    <script src="{{ js_path }}/redoc/redoc.standalone.js"></script>
+    <script src="{{ js_path }}/init-redoc-ui.js"></script>
 {% elseif (data.swaggerUiEnabled) %}
     <script src="{{ js_path }}/swagger-ui/swagger-ui-bundle.js"></script>
     <script src="{{ js_path }}/swagger-ui/swagger-ui-standalone-preset.js"></script>

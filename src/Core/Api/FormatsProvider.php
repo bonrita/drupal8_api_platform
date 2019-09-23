@@ -4,10 +4,11 @@ declare(strict_types=1);
 
 namespace Drupal\api_platform\Core\Api;
 
+use Drupal\api_platform\Core\Api\OperationAwareFormatsProviderInterface;
 use Drupal\api_platform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 
 
-final class FormatsProvider implements FormatsProviderInterface {
+final class FormatsProvider implements FormatsProviderInterface, OperationAwareFormatsProviderInterface {
 
   private $configuredFormats;
   private $resourceMetadataFactory;
@@ -26,6 +27,17 @@ final class FormatsProvider implements FormatsProviderInterface {
       return $this->configuredFormats;
     }
 
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getFormatsFromOperation(
+    string $resourceClass,
+    string $operationName,
+    string $operationType
+  ): array {
+    // TODO: Implement getFormatsFromOperation() method.
   }
 
 }

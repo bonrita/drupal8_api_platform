@@ -1,0 +1,88 @@
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+  <services>
+
+    <service id="property_info" class="Symfony\Component\PropertyInfo\PropertyInfoExtractor" public="false">
+      <argument type="iterator">
+        <argument type="service" id="property_info.serializer_extractor"/>
+        <argument type="service" id="property_info.reflection_extractor"/>
+      </argument>
+      <argument type="iterator">
+        <argument type="service" id="property_info.reflection_extractor"/>
+      </argument>
+      <argument type="iterator"/>
+      <argument type="iterator">
+        <argument type="service" id="property_info.reflection_extractor"/>
+      </argument>
+      <argument type="iterator">
+        <argument type="service" id="property_info.reflection_extractor"/>
+      </argument>
+    </service>
+
+    <service id="property_info.serializer_extractor" class="Symfony\Component\PropertyInfo\Extractor\SerializerExtractor" public="false">
+      <tag name="property_info.list_extractor" priority="-999"/>
+      <argument type="service" id="serializer.mapping.class_metadata_factory"/>
+    </service>
+
+    <service id="property_info.reflection_extractor" class="Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor" public="false">
+      <tag name="property_info.list_extractor" priority="-1000"/>
+      <tag name="property_info.type_extractor" priority="-1002"/>
+      <tag name="property_info.access_extractor" priority="-1000"/>
+      <tag name="property_info.initializable_extractor" priority="-1000"/>
+    </service>
+
+    <service id="serializer.mapping.class_metadata_factory" class="Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory" public="false">
+      <argument type="service" id="serializer.mapping.chain_loader"/>
+      <argument>null</argument>
+    </service>
+
+    <service id="serializer.mapping.chain_loader" class="Symfony\Component\Serializer\Mapping\Loader\LoaderChain" public="false">
+      <argument type="collection"/>
+    </service>
+
+    <service id="property_accessor" class="Symfony\Component\PropertyAccess\PropertyAccessor" public="false">
+      <argument>false</argument>
+      <argument>false</argument>
+      <argument type="service" id="cache.property_access" on-invalid="ignore"/>
+      <argument>true</argument>
+    </service>
+
+<!--    <service id="cache.system" class="Symfony\Component\Cache\Adapter\TraceableAdapter" public="true">-->
+<!--      <tag name="cache.pool"/>-->
+<!--      <tag name="kernel.reset" method="reset"/>-->
+<!--      <argument type="service" id="cache.system.recorder_inner"/>-->
+<!--    </service>-->
+
+<!--    <service id="cache.system.recorder_inner" class="Symfony\Component\Cache\Adapter\AdapterInterface" public="false">-->
+<!--      <argument>YOiVR971R5</argument>-->
+<!--      <argument>0</argument>-->
+<!--      <argument>%container.build_id%</argument>-->
+<!--      <argument>/var/www/symfony-bundles-demystify/var/cache/dev/pools</argument>-->
+<!--      <argument type="service" id="logger" on-invalid="ignore"/>-->
+<!--      <factory class="Symfony\Component\Cache\Adapter\AbstractAdapter" method="createSystemCache"/>-->
+<!--    </service>-->
+
+    <service id="serializer.normalizer.object" class="Symfony\Component\Serializer\Normalizer\ObjectNormalizer" public="false">
+      <tag name="normalizer" priority="-1000"/>
+      <argument type="service" id="serializer.mapping.class_metadata_factory"/>
+      <argument type="service" id="serializer.name_converter.metadata_aware"/>
+      <argument type="service" id="property_accessor"/>
+      <argument type="service" id="property_info" on-invalid="ignore"/>
+      <argument type="service" id="serializer.mapping.class_discriminator_resolver" on-invalid="ignore"/>
+      <argument>null</argument>
+      <argument type="collection"/>
+    </service>
+
+    <service id="serializer.name_converter.metadata_aware" class="Drupal\api_platform\Component\Serializer\NameConverter\MetadataAwareNameConverter" public="false">
+      <argument type="service" id="serializer.mapping.class_metadata_factory"/>
+    </service>
+
+    <service id="serializer.mapping.class_discriminator_resolver" class="Drupal\api_platform\Component\Serializer\Mapping\ClassDiscriminatorFromClassMetadata" public="false">
+      <argument type="service" id="serializer.mapping.class_metadata_factory"/>
+    </service>
+
+  </services>
+
+</container>

@@ -1,13 +1,26 @@
-api_platform.api_entrypoint:
-#  path: '/{index}.{_format}'
-  path: '/api'
-#  path: '/{index}'
-  defaults:
-    _controller: 'api_platform.action.entrypoint'
-    _title: 'API platform'
-    index: 'api'
-    _format: ''
-    _api_respond: 'TRUE'
-  requirements:
-    _access: 'TRUE'
-    index: 'index'
+#api_platform.api_entrypoint_index:
+#  path: '/api/{format}'
+#  defaults:
+#    _controller: 'api_platform.action.entrypoint'
+#    _format: ''
+#    _api_respond: 'TRUE'
+#    format: ''
+#  requirements:
+#    _access: 'TRUE'
+
+#api_platform.api_entrypoint:
+##  path: '/{index}.{_format}'
+#  path: '/api'
+##  path: '/{index}'
+#  defaults:
+#    _controller: 'api_platform.action.entrypoint'
+#    _title: 'API platform'
+#    index: 'api'
+#    _format: ''
+#    _api_respond: 'TRUE'
+#  requirements:
+#    _access: 'TRUE'
+#    index: 'index'
+
+#route_callbacks:
+#  - '\Drupal\api_platform\Core\Routing\ApiLoader::routes'

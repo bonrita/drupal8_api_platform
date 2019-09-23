@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+
+        <!-- Property name collection -->
+
+        <service id="api_platform.metadata.property.name_collection_factory"  alias="api_platform.metadata.property.name_collection_factory.property_info"/>
+
+
+        <service id="api_platform.metadata.property.name_collection_factory.property_info" class="Drupal\api_platform\Core\PropertyInfo\Metadata\Property\PropertyInfoPropertyNameCollectionFactory" public="false">
+            <argument type="service" id="api_platform.property_info" />
+        </service>
+
+
+    </services>
+
+</container>

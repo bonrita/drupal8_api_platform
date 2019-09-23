@@ -106,6 +106,8 @@ final class SwaggerUiAction {
       );
     }
 
+
+
     $documentation = new Documentation($this->resourceNameCollectionFactory->create(), $this->title, $this->description, $this->version, $this->formats);
 
     // Return a response instead of a render array so that the content
@@ -150,7 +152,7 @@ final class SwaggerUiAction {
   private function getContext(Request $request, Documentation $documentation): array
   {
     $context = [
-      'title' => ' BONA eheheh',
+      'title' =>  $this->title,
       'description' => $this->description,
       'formats' => $this->formats,
       'showWebby' => $this->showWebby,
@@ -166,7 +168,7 @@ final class SwaggerUiAction {
 
     $swaggerData = [
       //      'url' => $this->urlGenerator->generate('api_doc', ['format' => 'json']),
-//      'spec' => $this->normalizer->normalize($documentation, 'json', $swaggerContext),
+      'spec' => $this->normalizer->normalize($documentation, 'json', $swaggerContext),
     ];
 
     $swaggerData['oauth'] = [

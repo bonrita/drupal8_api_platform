@@ -24,13 +24,13 @@ final class EntrypointAction {
   }
 
   public function __invoke() {
-    $build['content'] = [
-      '#markup' => 'Trying this funny route',
-    ];
+//    $build['content'] = [
+//      '#markup' => 'Trying this funny route',
+//    ];
+//
+//    return $build;
 
-    return $build;
-
-//    return new Entrypoint($this->resourceNameCollectionFactory->create());
+    return new Entrypoint($this->resourceNameCollectionFactory->create());
 
   }
 
