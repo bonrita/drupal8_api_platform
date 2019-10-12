@@ -1,0 +1,12 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Drupal\api_platform\Core\Exception;
+
+/**
+ * Runtime exception.
+ */
+class RuntimeException extends \RuntimeException implements ExceptionInterface
+{
+}

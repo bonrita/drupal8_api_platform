@@ -15,6 +15,15 @@
             <argument type="service" id="api_platform.property_info" />
         </service>
 
+      <service id="api_platform.metadata.resource.metadata_factory.operation" class="Drupal\api_platform\Core\Metadata\Resource\Factory\OperationResourceMetadataFactory" decorates="api_platform.metadata.resource.metadata_factory" decoration-priority="10" public="false">
+        <argument type="service" id="api_platform.metadata.resource.metadata_factory.operation.inner" />
+        <argument>%api_platform.formats%</argument>
+      </service>
+
+      <service id="api_platform.metadata.resource.metadata_factory.short_name" class="Drupal\api_platform\Core\Metadata\Resource\Factory\ShortNameResourceMetadataFactory" decorates="api_platform.metadata.resource.metadata_factory" decoration-priority="20" public="false">
+        <argument type="service" id="api_platform.metadata.resource.metadata_factory.short_name.inner" />
+      </service>
+
 
     </services>
 

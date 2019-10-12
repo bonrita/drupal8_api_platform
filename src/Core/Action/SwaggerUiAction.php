@@ -20,6 +20,13 @@ use Symfony\Component\Routing\Generator\UrlGeneratorInterface;
 use Symfony\Component\Serializer\Normalizer\NormalizerInterface;
 use Twig\Environment as TwigEnvironment;
 
+/**
+ * Class SwaggerUiAction
+ *
+ * @package Drupal\api_platform\Core\Action
+ *
+ * Displays the documentation.
+ */
 final class SwaggerUiAction {
 
   private $resourceNameCollectionFactory;
@@ -55,12 +62,12 @@ final class SwaggerUiAction {
   /**
    * @throws InvalidArgumentException
    */
-  public function __construct(ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, ResourceMetadataFactoryInterface $resourceMetadataFactory, NormalizerInterface $normalizer, TwigEnvironment $twig, UrlGeneratorInterface $urlGenerator, string $title = '', string $description = '', string $version = '', /* FormatsProviderInterface */ $formatsProvider = [], $oauthEnabled = false, $oauthClientId = '', $oauthClientSecret = '', $oauthType = '', $oauthFlow = '', $oauthTokenUrl = '', $oauthAuthorizationUrl = '', $oauthScopes = [], bool $showWebby = true, bool $swaggerUiEnabled = false, bool $reDocEnabled = false, bool $graphqlEnabled = false, RendererInterface $renderer)
+  public function __construct(ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory, ResourceMetadataFactoryInterface $resourceMetadataFactory, NormalizerInterface $normalizer, RendererInterface $renderer, UrlGeneratorInterface $urlGenerator, string $title = '', string $description = '', string $version = '', /* FormatsProviderInterface */ $formatsProvider = [], $oauthEnabled = false, $oauthClientId = '', $oauthClientSecret = '', $oauthType = '', $oauthFlow = '', $oauthTokenUrl = '', $oauthAuthorizationUrl = '', $oauthScopes = [], bool $showWebby = true, bool $swaggerUiEnabled = false, bool $reDocEnabled = false, bool $graphqlEnabled = false)
   {
     $this->resourceNameCollectionFactory = $resourceNameCollectionFactory;
     $this->resourceMetadataFactory = $resourceMetadataFactory;
     $this->normalizer = $normalizer;
-    $this->twig = $twig;
+//    $this->twig = $twig;
     $this->urlGenerator = $urlGenerator;
     $this->title = $title;
     $this->showWebby = $showWebby;
@@ -118,32 +125,17 @@ final class SwaggerUiAction {
     $element = [
       '#theme' => 'swagger_ui_index',
       '#data' => $this->getContext($request, $documentation),
-//      '#attached' => [
-//        'library' => [
-//          'api_platform/general',
-//          'api_platform/swagger_ui',
-//        ]
-//      ]
     ];
-
-//    return $element;
 
     $content = $this->renderer->executeInRenderContext(new RenderContext(), function () use ($element) {
       return $this->renderer->render($element);
     });
-//
+
     $response
       ->setContent($content)
-//      ->setAttachments($element['#attached'])
       ->addCacheableDependency(CacheableMetadata::createFromRenderArray($element));
-//
-    return $response;
 
-//      $build['content'] = [
-//        '#markup' => 'Trying route: SwaggerUiAction',
-//      ];
-//
-//          return $build;
+    return $response;
   }
 
   /**

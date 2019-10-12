@@ -83,6 +83,43 @@
       <argument type="service" id="serializer.mapping.class_metadata_factory"/>
     </service>
 
+
+
+<!--    DOCTRINE-->
+    <service id="annotation_reader" alias="annotations.cached_reader"/>
+    <service id="doctrine.array_cache" class="Doctrine\Common\Cache\ArrayCache" public="false"/>
+
+    <service id="annotations.cached_reader" class="Doctrine\Common\Annotations\CachedReader" public="false">
+      <tag name="annotations.cached_reader"/>
+      <argument type="service" id="annotations.reader"/>
+      <argument type="service" id="doctrine.array_cache"/>
+      <argument>true</argument>
+<!--      <property name="cacheProviderBackup" type="service" id="annotations.cache"/>-->
+    </service>
+
+    <service id="annotations.reader" class="Doctrine\Common\Annotations\AnnotationReader" public="false">
+      <call method="addGlobalIgnoredName">
+        <argument>required</argument>
+        <argument type="service" id="annotations.dummy_registry"/>
+      </call>
+    </service>
+
+    <service id="annotations.dummy_registry" class="Doctrine\Common\Annotations\AnnotationRegistry" public="false">
+      <call method="registerUniqueLoader">
+        <argument>class_exists</argument>
+      </call>
+    </service>
+
+<!--    <service id="annotations.cache" class="Symfony\Component\Cache\DoctrineProvider" public="false">-->
+<!--      <argument type="service" id=".2_PhpArrayAdapter~EDYUJDd"/>-->
+<!--    </service>-->
+
+<!--    <service id=".2_PhpArrayAdapter~EDYUJDd" class="Symfony\Component\Cache\Adapter\PhpArrayAdapter" public="false">-->
+<!--      <argument>/var/www/symfony-bundles-demystify/var/cache/dev/annotations.php</argument>-->
+<!--      <argument type="service" id="cache.annotations"/>-->
+<!--      <factory class="Symfony\Component\Cache\Adapter\PhpArrayAdapter" method="create"/>-->
+<!--    </service>-->
+
   </services>
 
 </container>

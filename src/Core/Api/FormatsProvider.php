@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\api_platform\Core\Api;
 
+use Drupal\api_platform\Core\Exception\InvalidArgumentException;
 use Drupal\api_platform\Core\Api\OperationAwareFormatsProviderInterface;
 use Drupal\api_platform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 
@@ -37,7 +38,17 @@ final class FormatsProvider implements FormatsProviderInterface, OperationAwareF
     string $operationName,
     string $operationType
   ): array {
-    // TODO: Implement getFormatsFromOperation() method.
+    $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
+
+    if (!$formats = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'formats', [], true)) {
+      return $this->configuredFormats;
+    }
+
+    if (!\is_array($formats)) {
+      throw new InvalidArgumentException(sprintf("The 'formats' attributes must be an array, %s given for resource class '%s'.", \gettype($formats), $resourceClass));
+    }
+
+    return $this->getOperationFormats($formats);
   }
 
 }

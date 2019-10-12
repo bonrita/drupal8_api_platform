@@ -4,10 +4,12 @@ declare(strict_types=1);
 
 namespace Drupal\api_platform\DependencyInjection\Compiler;
 
+use Doctrine\Common\Annotations\Annotation;
 use Drupal\api_platform\DependencyInjection\Configuration;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
 use Symfony\Component\Config\Definition\Processor;
 use Symfony\Component\Config\FileLocator;
+use Symfony\Component\Config\Resource\DirectoryResource;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
@@ -78,6 +80,12 @@ class ConfigPass implements CompilerPassInterface{
   private function registerMetadataConfiguration(ContainerBuilder $container, array $config, XmlFileLoader $loader):void {
     $loader->load('metadata/metadata.xml');
     $loader->load('metadata/xml.xml');
+    [$xmlResources, $yamlResources] = $this->getResourcesToWatch($container, $config);
+
+    if (class_exists(Annotation::class)) {
+      $loader->load('metadata/annotation.xml');
+    }
+
   }
 
   final protected function processConfiguration(ConfigurationInterface $configuration, array $configs): array {
@@ -170,5 +178,43 @@ class ConfigPass implements CompilerPassInterface{
     $container->getDefinition('cache.system.recorder_inner')->replaceArgument(2, $version);
   }
 
+  private function getResourcesToWatch(ContainerBuilder $container, array $config) {
+    $paths = array_unique(array_merge($config['mapping']['paths'], $this->getBundlesResourcesPaths($container, $config)));
+
+    $resources = ['yml' => [], 'xml' => [], 'dir' => []];
+
+    foreach ($paths as $path) {
+      if (is_dir($path)) {
+        $resources['dir'][] = $path;
+        $container->addResource(new DirectoryResource($path, '/\.(xml|ya?ml|php)$/'));
+
+        continue;
+      }
+    }
+
+    $container->setParameter('api_platform.resource_class_directories', $resources['dir']);
+
+    return [$resources['xml'], $resources['yml']];
+  }
+
+  private function getBundlesResourcesPaths(ContainerBuilder $container, array $config) {
+    $bundlesResourcesPaths = [];
+
+    foreach ($container->getParameter('container.namespaces') as $dirname) {
+      $paths = [];
+      $paths[] = "$dirname/Entity";
+
+      foreach ($paths as $path) {
+        if ($container->fileExists($path, false)) {
+          $bundlesResourcesPaths[] = $path;
+        }
+      }
+    }
+
+    // @todo To be removed so that all modules are read.
+    $bundlesResourcesPaths = ['modules/custom/api_platform/src/Entity'];
+
+    return $bundlesResourcesPaths;
+  }
 
 }

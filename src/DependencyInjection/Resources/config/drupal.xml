@@ -8,8 +8,14 @@
 
     <!-- Event listeners -->
     <service id="api_platform.route_subscriber" class="Drupal\api_platform\Routing\RouteProviderSubscriber">
+      <argument type="service" id="api_platform.metadata.resource.name_collection_factory" />
+      <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
+      <argument type="service" id="api_platform.operation_path_resolver.custom" />
+      <argument type="service" id="service_container" />
       <argument>%api_platform.formats%</argument>
+      <argument>%api_platform.resource_class_directories%</argument>
       <argument>%api_platform.enable_entrypoint%</argument>
+
 
       <tag name="event_subscriber"/>
     </service>

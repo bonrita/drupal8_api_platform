@@ -12,7 +12,9 @@ final class UnderscorePathSegmentNameGenerator implements PathSegmentNameGenerat
    * @inheritDoc
    */
   public function getSegmentName(string $name, bool $collection = TRUE): string {
-    // TODO: Implement getSegmentName() method.
+    $name = Inflector::tableize($name);
+
+    return $collection ? Inflector::pluralize($name) : $name;
   }
 
 }
