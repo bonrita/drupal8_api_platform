@@ -28,6 +28,16 @@ final class FormatsProvider implements FormatsProviderInterface, OperationAwareF
       return $this->configuredFormats;
     }
 
+    $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
+
+    if (!$formats = $resourceMetadata->getOperationAttribute($attributes, 'formats', [], true)) {
+      return $this->configuredFormats;
+    }
+
+    if (!\is_array($formats)) {
+      throw new InvalidArgumentException(sprintf("The 'formats' attributes must be an array, %s given for resource class '%s'.", \gettype($formats), $attributes['resource_class']));
+    }
+
   }
 
   /**

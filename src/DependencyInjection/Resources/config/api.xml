@@ -87,7 +87,7 @@
       <argument type="service" id="api_platform.negotiator" />
       <argument type="service" id="api_platform.formats_provider" />
 
-      <tag name="event_subscriber" priority="7" />
+      <tag name="event_subscriber"/>
     </service>
 
     <service id="api_platform.listener.view.respond" class="Drupal\api_platform\Core\EventListener\RespondListener">
@@ -101,6 +101,15 @@
       <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
 
       <tag name="event_subscriber" />
+    </service>
+
+    <service id="api_platform.listener.exception" class="Drupal\api_platform\Core\EventListener\ExceptionListener">
+      <argument>api_platform.action.exception</argument>
+      <argument type="service" id="logger" on-invalid="null" />
+
+      <tag name="event_subscriber" />
+<!--      <tag name="kernel.event_listener" event="kernel.exception" method="onKernelException" priority="-96" />-->
+<!--      <tag name="monolog.logger" channel="request" />-->
     </service>
 
     <!-- Serializer -->
@@ -134,13 +143,19 @@
 
     <!-- Action -->
 
-    <service id="api_platform.action.placeholder" class="ApiPlatform\Core\Action\PlaceholderAction" public="true" />
+    <service id="api_platform.action.placeholder" class="Drupal\api_platform\Core\Action\PlaceholderAction" public="true" />
     <service id="api_platform.action.get_collection" alias="api_platform.action.placeholder" public="true" />
     <service id="api_platform.action.post_collection" alias="api_platform.action.placeholder" public="true" />
     <service id="api_platform.action.get_item" alias="api_platform.action.placeholder" public="true" />
     <service id="api_platform.action.patch_item" alias="api_platform.action.placeholder" public="true" />
     <service id="api_platform.action.put_item" alias="api_platform.action.placeholder" public="true" />
     <service id="api_platform.action.delete_item" alias="api_platform.action.placeholder" public="true" />
+
+    <service id="api_platform.action.exception" class="Drupal\api_platform\Core\Action\ExceptionAction" public="true">
+      <argument type="service" id="api_platform.serializer" />
+      <argument>%api_platform.error_formats%</argument>
+      <argument>%api_platform.exception_to_status%</argument>
+    </service>
 
   </services>
 </container>

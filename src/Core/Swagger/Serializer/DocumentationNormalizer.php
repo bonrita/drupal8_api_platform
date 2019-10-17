@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\api_platform\Core\Swagger\Serializer;
 
+use Drupal\api_platform\Core\Metadata\Property\PropertyMetadata;
 use Drupal\api_platform\Core\Metadata\Resource\ResourceMetadata;
 use Drupal\api_platform\Core\Api\OperationType;
 use Drupal\api_platform\Core\Api\FilterCollection;
@@ -169,6 +170,12 @@ final class DocumentationNormalizer implements NormalizerInterface {
 
     if ('' !== $description = $documentation->getDescription()) {
       $docs['info']['description'] = $description;
+    }
+
+    if ($v3) {
+
+    } elseif (\count($definitions) > 0) {
+      $docs['definitions'] = $definitions;
     }
 
     return $docs;
@@ -421,21 +428,107 @@ final class DocumentationNormalizer implements NormalizerInterface {
     }
 
     $options = isset($serializerContext[AbstractNormalizer::GROUPS]) ? ['serializer_groups' => $serializerContext[AbstractNormalizer::GROUPS]] : [];
-    //    foreach ($this->propertyNameCollectionFactory->create($resourceClass, $options) as $propertyName) {
-    //      $propertyMetadata = $this->propertyMetadataFactory->create($resourceClass, $propertyName);
-    //      if (!$propertyMetadata->isReadable() && !$propertyMetadata->isWritable()) {
-    //        continue;
-    //      }
-    //
-    //      $normalizedPropertyName = $this->nameConverter ? $this->nameConverter->normalize($propertyName, $resourceClass, self::FORMAT, $serializerContext ?? []) : $propertyName;
-    //      if ($propertyMetadata->isRequired()) {
-    //        $definitionSchema['required'][] = $normalizedPropertyName;
-    //      }
-    //
-    //      $definitionSchema['properties'][$normalizedPropertyName] = $this->getPropertySchema($v3, $propertyMetadata, $definitions, $serializerContext);
-    //    }
+        foreach ($this->propertyNameCollectionFactory->create($resourceClass, $options) as $propertyName) {
+          $propertyMetadata = $this->propertyMetadataFactory->create($resourceClass, $propertyName);
+          if (!$propertyMetadata->isReadable() && !$propertyMetadata->isWritable()) {
+            continue;
+          }
+
+          $normalizedPropertyName = $this->nameConverter ? $this->nameConverter->normalize($propertyName, $resourceClass, self::FORMAT, $serializerContext ?? []) : $propertyName;
+          if ($propertyMetadata->isRequired()) {
+            $definitionSchema['required'][] = $normalizedPropertyName;
+          }
+
+          $definitionSchema['properties'][$normalizedPropertyName] = $this->getPropertySchema($v3, $propertyMetadata, $definitions, $serializerContext);
+        }
 
     return $definitionSchema;
+  }
+
+  /**
+   * Gets a property Schema Object.
+   *
+   * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#schemaObject
+   */
+  private function getPropertySchema(bool $v3, PropertyMetadata $propertyMetadata, \ArrayObject $definitions, array $serializerContext = null): \ArrayObject
+  {
+    $propertySchema = new \ArrayObject($propertyMetadata->getAttributes()[$v3 ? 'openapi_context' : 'swagger_context'] ?? []);
+
+    if (false === $propertyMetadata->isWritable() && !$propertyMetadata->isInitializable()) {
+      $propertySchema['readOnly'] = true;
+    }
+
+    if (null !== $description = $propertyMetadata->getDescription()) {
+      $propertySchema['description'] = $description;
+    }
+
+    if (null === $type = $propertyMetadata->getType()) {
+      return $propertySchema;
+    }
+
+    $isCollection = $type->isCollection();
+    if (null === $valueType = $isCollection ? $type->getCollectionValueType() : $type) {
+      $builtinType = 'string';
+      $className = null;
+    } else {
+      $builtinType = $valueType->getBuiltinType();
+      $className = $valueType->getClassName();
+    }
+
+    $valueSchema = $this->getType($v3, $builtinType, $isCollection, $className, $propertyMetadata->isReadableLink(), $definitions, $serializerContext);
+
+    return new \ArrayObject((array) $propertySchema + $valueSchema);
+  }
+
+  /**
+   * Gets the Swagger's type corresponding to the given PHP's type.
+   */
+  private function getType(bool $v3, string $type, bool $isCollection, ?string $className, ?bool $readableLink, \ArrayObject $definitions, array $serializerContext = null): array
+  {
+    if ($isCollection) {
+      return ['type' => 'array', 'items' => $this->getType($v3, $type, false, $className, $readableLink, $definitions, $serializerContext)];
+    }
+
+    if (Type::BUILTIN_TYPE_STRING === $type) {
+      return ['type' => 'string'];
+    }
+
+    if (Type::BUILTIN_TYPE_INT === $type) {
+      return ['type' => 'integer'];
+    }
+
+    if (Type::BUILTIN_TYPE_FLOAT === $type) {
+      return ['type' => 'number'];
+    }
+
+    if (Type::BUILTIN_TYPE_BOOL === $type) {
+      return ['type' => 'boolean'];
+    }
+
+    if (Type::BUILTIN_TYPE_OBJECT === $type) {
+      if (null === $className) {
+        return ['type' => 'string'];
+      }
+
+      if (is_subclass_of($className, \DateTimeInterface::class)) {
+        return ['type' => 'string', 'format' => 'date-time'];
+      }
+
+      if (!$this->resourceClassResolver->isResourceClass($className)) {
+        return ['type' => 'string'];
+      }
+
+      if (true === $readableLink) {
+        return [
+          '$ref' => sprintf(
+            $v3 ? '#/components/schemas/%s' : '#/definitions/%s',
+            $this->getDefinition($v3, $definitions, $resourceMetadata = $this->resourceMetadataFactory->create($className), $className, $resourceMetadata->getAttribute('output')['class'] ?? $className, $serializerContext)
+          ),
+        ];
+      }
+    }
+
+    return ['type' => 'string'];
   }
 
   private function addItemOperationParameters(bool $v3, \ArrayObject $pathOperation): \ArrayObject

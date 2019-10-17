@@ -46,7 +46,7 @@ final class OperationPathResolver implements OperationPathResolverInterface {
       $path .= '/{id}';
     }
 
-    $path .= '.{_format}';
+//    $path .= '.{_format}';
 
     return $path;
   }

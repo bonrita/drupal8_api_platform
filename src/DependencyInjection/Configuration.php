@@ -5,9 +5,14 @@ declare(strict_types=1);
 namespace Drupal\api_platform\DependencyInjection;
 
 
+use Drupal\api_platform\Core\Exception\FilterValidationException;
+use Drupal\api_platform\Core\Exception\InvalidArgumentException;
 use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Config\Definition\Exception\InvalidConfigurationException;
+use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\Serializer\Exception\ExceptionInterface as SerializerExceptionInterface;
 
 /**
  * Generates the configuration tree builder.
@@ -94,14 +99,20 @@ final class Configuration implements ConfigurationInterface {
     $this->addGraphQlSection($rootNode);
     $this->addSwaggerSection($rootNode);
 
+    $this->addExceptionToStatusSection($rootNode);
+
     $this->addFormatSection($rootNode, 'formats', [
       'jsonld' => ['mime_types' => ['application/ld+json']],
       'json' => ['mime_types' => ['application/json']], // Swagger support
       'html' => ['mime_types' => ['text/html']], // Swagger UI support
     ]);
 
-    return $treeBuilder;
+    $this->addFormatSection($rootNode, 'error_formats', [
+      'jsonproblem' => ['mime_types' => ['application/problem+json']],
+      'jsonld' => ['mime_types' => ['application/ld+json']],
+    ]);
 
+    return $treeBuilder;
   }
 
   private function addFormatSection(ArrayNodeDefinition $rootNode, string $key, array $defaultValue): void {
@@ -195,5 +206,57 @@ final class Configuration implements ConfigurationInterface {
         ->end()
       ->end();
   }
+
+     /**
+     * @throws InvalidConfigurationException
+     */
+    private function addExceptionToStatusSection(ArrayNodeDefinition $rootNode): void
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('exception_to_status')
+                    ->defaultValue([
+                        SerializerExceptionInterface::class => Response::HTTP_BAD_REQUEST,
+                        InvalidArgumentException::class => Response::HTTP_BAD_REQUEST,
+                        FilterValidationException::class => Response::HTTP_BAD_REQUEST,
+//                        OptimisticLockException::class => Response::HTTP_CONFLICT,
+                    ])
+                    ->info('The list of exceptions mapped to their HTTP status code.')
+                    ->normalizeKeys(false)
+                    ->useAttributeAsKey('exception_class')
+                    ->beforeNormalization()
+                        ->ifArray()
+                        ->then(function (array $exceptionToStatus) {
+                            foreach ($exceptionToStatus as &$httpStatusCode) {
+                                if (\is_int($httpStatusCode)) {
+                                    continue;
+                                }
+
+                                if (\defined($httpStatusCodeConstant = sprintf('%s::%s', Response::class, $httpStatusCode))) {
+                                    @trigger_error(sprintf('Using a string "%s" as a constant of the "%s" class is deprecated since API Platform 2.1 and will not be possible anymore in API Platform 3. Use the Symfony\'s custom YAML extension for PHP constants instead (i.e. "!php/const %s").', $httpStatusCode, Response::class, $httpStatusCodeConstant), E_USER_DEPRECATED);
+
+                                    $httpStatusCode = \constant($httpStatusCodeConstant);
+                                }
+                            }
+
+                            return $exceptionToStatus;
+                        })
+                    ->end()
+                    ->prototype('integer')->end()
+                    ->validate()
+                        ->ifArray()
+                        ->then(function (array $exceptionToStatus) {
+                            foreach ($exceptionToStatus as $httpStatusCode) {
+                                if ($httpStatusCode < 100 || $httpStatusCode >= 600) {
+                                    throw new InvalidConfigurationException(sprintf('The HTTP status code "%s" is not valid.', $httpStatusCode));
+                                }
+                            }
+
+                            return $exceptionToStatus;
+                        })
+                    ->end()
+                ->end()
+            ->end();
+    }
 
 }

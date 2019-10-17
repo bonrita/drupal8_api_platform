@@ -79,7 +79,6 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
     $this->operationPathResolver = $operationPathResolver;
   }
 
-
   /**
    * Provides routes on route rebuild time.
    *
@@ -168,7 +167,7 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
       }
     }
 
-    $path = trim(trim($resourceMetadata->getAttribute('route_prefix', '')), '/');
+    $path = trim(trim($resourceMetadata->getAttribute('route_prefix', 'api')), '/');
     $path .= $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $operationName);
 
     $route = new Route(
@@ -179,7 +178,7 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
         '_api_resource_class' => $resourceClass,
         sprintf('_api_%s_operation_name', $operationType) => $operationName,
       ] + ($operation['defaults'] ?? []),
-      $operation['requirements'] ?? [],
+      $operation['requirements'] ?? ['_access' => 'TRUE'],
       $operation['options'] ?? [],
       $operation['host'] ?? '',
       $operation['schemes'] ?? [],
@@ -189,7 +188,6 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
 
     $routeCollection->add(RouteNameGenerator::generate($operationName, $resourceShortName, $operationType), $route);
   }
-
 
   /**
    * @inheritDoc

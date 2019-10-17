@@ -34,17 +34,19 @@ class ConfigPass implements CompilerPassInterface{
     $config = $this->processConfiguration($configuration, $configs);
 
     $formats = $this->getFormats($config['formats']);
+    $errorFormats = $this->getFormats($config['error_formats']);
 
-    $this->registerCommonConfiguration($container, $config, $loader, $formats);
+    $this->registerCommonConfiguration($container, $config, $loader, $formats, $errorFormats);
     $this->registerMetadataConfiguration($container, $config, $loader);
     $this->registerSwaggerConfiguration($container, $config, $loader);
+    $this->registerJsonProblemConfiguration($errorFormats, $loader);
     $this->registerOAuthConfiguration($container, $config);
     $this->registerJsonLdHydraConfiguration($container, $formats, $loader, $config['enable_docs']);
     $this->registerGraphQlConfiguration($container, $config, $loader);
 //    $this->registerCacheConfiguration($container, $config);
   }
 
-  private function registerCommonConfiguration(ContainerBuilder $container, $config, XmlFileLoader $loader, $formats) {
+  private function registerCommonConfiguration(ContainerBuilder $container, $config, XmlFileLoader $loader, $formats,  array $errorFormats) {
     $loader->load('symfony.xml');
     $loader->load('drupal.xml');
 
@@ -59,7 +61,9 @@ class ConfigPass implements CompilerPassInterface{
     $container->setParameter('api_platform.description', $config['description']);
     $container->setParameter('api_platform.version', $config['version']);
     $container->setParameter('api_platform.show_webby', $config['show_webby']);
+    $container->setParameter('api_platform.exception_to_status', $config['exception_to_status']);
     $container->setParameter('api_platform.formats', $formats);
+    $container->setParameter('api_platform.error_formats', $errorFormats);
     $container->setParameter('api_platform.collection.pagination.enabled', $this->isConfigEnabled($container, $config['collection']['pagination']));
     $container->setParameter('api_platform.collection.pagination.partial', $config['collection']['pagination']['partial']);
     $container->setParameter('api_platform.collection.pagination.client_enabled', $config['collection']['pagination']['client_enabled']);
@@ -215,6 +219,15 @@ class ConfigPass implements CompilerPassInterface{
     $bundlesResourcesPaths = ['modules/custom/api_platform/src/Entity'];
 
     return $bundlesResourcesPaths;
+  }
+
+  private function registerJsonProblemConfiguration(array $errorFormats, XmlFileLoader $loader): void
+  {
+    if (!isset($errorFormats['jsonproblem'])) {
+      return;
+    }
+
+    $loader->load('problem.xml');
   }
 
 }

@@ -36,13 +36,6 @@ final class ExtractorResourceMetadataFactory implements ResourceMetadataFactoryI
       }
     }
 
-    $class = class_exists($resourceClass);
-    $int = interface_exists($resourceClass);
-    $ext = $resource = $this->extractor->getResources();
-
-
-    $gg = $class = $int = $ext;
-
     if (!(class_exists($resourceClass) || interface_exists($resourceClass)) || !$resource = $this->extractor->getResources()[$resourceClass] ?? false) {
       return $this->handleNotFound($parentResourceMetadata, $resourceClass);
     }

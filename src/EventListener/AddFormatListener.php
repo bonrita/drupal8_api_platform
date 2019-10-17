@@ -52,6 +52,12 @@ final class AddFormatListener implements EventSubscriberInterface {
   public function onKernelRequest(GetResponseEvent $event): void
   {
     $request = $event->getRequest();
+
+    $all = ($request->attributes->has('_api_resource_class') || $request->attributes->getBoolean('_api_respond', false) || $request->attributes->getBoolean('_graphql', false));
+    $reso = $request->attributes->has('_api_resource_class');
+    $resp = $request->attributes->getBoolean('_api_respond', false);
+    $grp = $request->attributes->getBoolean('_graphql', false);
+
     if (!($request->attributes->has('_api_resource_class') || $request->attributes->getBoolean('_api_respond', false) || $request->attributes->getBoolean('_graphql', false))) {
       return;
     }
@@ -142,7 +148,7 @@ final class AddFormatListener implements EventSubscriberInterface {
    * @inheritDoc
    */
   public static function getSubscribedEvents() {
-    $events[KernelEvents::REQUEST][] = ['onKernelRequest'];
+    $events[KernelEvents::REQUEST][] = ['onKernelRequest', 7];
     return $events;
   }
 

@@ -12,6 +12,7 @@ use Drupal\Core\Entity\EditorialContentEntityBase;
 use Drupal\Core\Entity\EntityStorageInterface;
 use Drupal\Core\Entity\EntityTypeInterface;
 use Drupal\Core\Field\BaseFieldDefinition;
+use Drupal\Core\TypedData\TranslatableInterface;
 use Drupal\taxonomy\Entity\Term;
 use Drupal\user\StatusItem;
 
@@ -189,7 +190,7 @@ class Car extends EditorialContentEntityBase {
   /**
    * {@inheritdoc}
    */
-  public function getDescription() {
+  public function getDescription(): string {
     return $this->get('description')->value;
   }
 
@@ -204,7 +205,7 @@ class Car extends EditorialContentEntityBase {
   /**
    * {@inheritdoc}
    */
-  public function getFormat() {
+  public function getFormat(): string {
     return $this->get('description')->format;
   }
 
@@ -219,7 +220,7 @@ class Car extends EditorialContentEntityBase {
   /**
    * {@inheritdoc}
    */
-  public function getName() {
+  public function getName(): string {
     return $this->label();
   }
 
@@ -234,7 +235,7 @@ class Car extends EditorialContentEntityBase {
   /**
    * {@inheritdoc}
    */
-  public function getWeight() {
+  public function getWeight(): int {
     return $this->get('weight')->value;
   }
 
@@ -249,9 +250,52 @@ class Car extends EditorialContentEntityBase {
   /**
    * {@inheritdoc}
    */
-  public function getVocabularyId() {
+  public function getVocabularyId(): string {
     @trigger_error('The ' . __METHOD__ . ' method is deprecated since version 8.4.0 and will be removed before 9.0.0. Use ' . __CLASS__ . '::bundle() instead to get the vocabulary ID.', E_USER_DEPRECATED);
     return $this->bundle();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getLoadedRevisionId(): int {
+    return parent::getLoadedRevisionId();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getRevisionId(): int {
+    return parent::getRevisionId();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getTranslatableFields($include_computed = TRUE): array {
+    return parent::getTranslatableFields(
+      $include_computed
+    );
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getIterator(): \Iterator {
+    return parent::getIterator();
+  }
+
+  /**
+   * @inheritDoc
+   */
+  public function getFieldDefinitions(): array {
+    return parent::getFieldDefinitions();
+  }
+
+  public function getTranslation($langcode): TranslatableInterface {
+    return parent::getTranslation(
+      $langcode
+    );
   }
 
 }

@@ -4,13 +4,13 @@ declare(strict_types=1);
 
 namespace Drupal\api_platform\Core\Metadata\Property\Factory;
 
-use ApiPlatform\Core\Exception\PropertyNotFoundException;
-use ApiPlatform\Core\Metadata\Property\PropertyMetadata;
+use Drupal\api_platform\Core\Exception\PropertyNotFoundException;
+use Drupal\api_platform\Core\Metadata\Property\PropertyMetadata;
 
 /**
  * Interface PropertyMetadataFactoryInterface
  *
- * @package ApiPlatform\Core\Metadata\Property\Factory
+ * @package Drupal\api_platform\Core\Metadata\Property\Factory
  *
  * Creates a property metadata value object.
  */
