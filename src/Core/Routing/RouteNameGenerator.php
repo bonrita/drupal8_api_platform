@@ -1,14 +1,5 @@
 <?php
 
-/*
- * This file is part of the API Platform project.
- *
- * (c) Kévin Dunglas <dunglas@gmail.com>
- *
- * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
- */
-
 declare(strict_types=1);
 
 namespace Drupal\api_platform\Core\Routing;
@@ -22,8 +13,6 @@ use Doctrine\Common\Inflector\Inflector;
  * Generates the Symfony route name associated with an operation name and a resource short name.
  *
  * @internal
- *
- * @author Baptiste Meyer <baptiste.meyer@gmail.com>
  */
 final class RouteNameGenerator
 {

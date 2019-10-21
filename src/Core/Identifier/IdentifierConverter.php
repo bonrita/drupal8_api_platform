@@ -13,8 +13,6 @@ use Symfony\Component\PropertyInfo\Type;
 
 /**
  * Identifier converter that chains identifier denormalizers.
- *
- * @author Antoine Bluchet <soyuka@gmail.com>
  */
 final class IdentifierConverter implements ContextAwareIdentifierConverterInterface {
 
