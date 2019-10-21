@@ -14,6 +14,13 @@
             <tag name="normalizer" priority="-800" />
         </service>
 
+      <service id="api_platform.hydra.normalizer.error" class="Drupal\api_platform\Core\Hydra\Serializer\ErrorNormalizer" public="false">
+        <argument type="service" id="api_platform.router" />
+<!--        <argument>%kernel.debug%</argument>-->
+
+        <tag name="normalizer" priority="-800" />
+      </service>
+
     </services>
 
 </container>
