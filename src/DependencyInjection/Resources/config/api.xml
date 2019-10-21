@@ -112,6 +112,17 @@
 <!--      <tag name="monolog.logger" channel="request" />-->
     </service>
 
+    <service id="api_platform.listener.request.read" class="Drupal\api_platform\Core\EventListener\ReadListener">
+      <argument type="service" id="api_platform.collection_data_provider" />
+      <argument type="service" id="api_platform.item_data_provider" />
+      <argument type="service" id="api_platform.subresource_data_provider" />
+      <argument type="service" id="api_platform.serializer.context_builder" />
+      <argument type="service" id="api_platform.identifier.converter" />
+      <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
+
+      <tag name="event_subscriber" />
+    </service>
+
     <!-- Serializer -->
 
     <service id="api_platform.serializer.context_builder" class="Drupal\api_platform\Core\Serializer\SerializerContextBuilder" public="false">
@@ -123,6 +134,21 @@
     <service id="api_platform.identifiers_extractor" class="Drupal\api_platform\Core\Api\IdentifiersExtractor" public="false">
       <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
       <argument type="service" id="api_platform.metadata.property.metadata_factory" />
+      <argument type="service" id="api_platform.entity_extractor" />
+      <argument type="service" id="api_platform.property_accessor" />
+      <argument type="service" id="api_platform.resource_class_resolver" />
+    </service>
+
+    <service id="api_platform.identifier.converter" class="Drupal\api_platform\Core\Identifier\IdentifierConverter" public="false">
+      <argument type="service" id="api_platform.identifiers_extractor.cached" />
+      <argument type="service" id="api_platform.metadata.property.metadata_factory" />
+      <argument type="tagged" tag="api_platform.identifier.denormalizer" />
+    </service>
+
+    <service id="api_platform.identifiers_extractor.cached" class="Drupal\api_platform\Core\Api\CachedIdentifiersExtractor" decorates="api_platform.identifiers_extractor" public="false">
+<!--    <service id="api_platform.identifiers_extractor.cached" class="Drupal\api_platform\Core\Api\CachedIdentifiersExtractor" public="false">-->
+<!--      <argument type="service" id="api_platform.cache.identifiers_extractor" />-->
+      <argument type="service" id="api_platform.identifiers_extractor.cached.inner" />
       <argument type="service" id="api_platform.property_accessor" />
       <argument type="service" id="api_platform.resource_class_resolver" />
     </service>

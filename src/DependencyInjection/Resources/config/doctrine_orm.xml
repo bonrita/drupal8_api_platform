@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+    <services>
+
+        <!-- Metadata loader -->
+
+        <service id="api_platform.doctrine.orm.metadata.property.metadata_factory" class="Drupal\api_platform\Core\Bridge\Doctrine\Orm\Metadata\Property\DoctrineOrmPropertyMetadataFactory" decorates="api_platform.metadata.property.metadata_factory" decoration-priority="40" public="false">
+            <argument type="service" id="entity_type.repository" />
+            <argument type="service" id="entity_type.manager" />
+            <argument type="service" id="api_platform.doctrine.orm.metadata.property.metadata_factory.inner" />
+        </service>
+
+      <service id="api_platform.entity_extractor" class="Drupal\api_platform\Core\Metadata\Extractor\EntityExtractor">
+            <argument type="service" id="entity_type.repository" />
+            <argument type="service" id="entity_type.manager" />
+      </service>
+
+
+
+
+    </services>
+</container>

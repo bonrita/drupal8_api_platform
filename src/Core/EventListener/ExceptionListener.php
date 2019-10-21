@@ -49,7 +49,8 @@ final class ExceptionListener implements EventSubscriberInterface {
    * @inheritDoc
    */
   public static function getSubscribedEvents() {
-    $events[KernelEvents::EXCEPTION][] = ['onKernelException', -96];
+    // -96
+    $events[KernelEvents::EXCEPTION][] = ['onKernelException', -69];
 
     return $events;
   }

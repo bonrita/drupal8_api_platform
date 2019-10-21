@@ -21,7 +21,7 @@ use Drupal\user\StatusItem;
  *
  * @ApiResource()
  *
- * @ContentEntityType()Type(
+ * @ContentEntityType(
  *   id = "car",
  *   label = @Translation("Car"),
  *   label_collection = @Translation("Car"),

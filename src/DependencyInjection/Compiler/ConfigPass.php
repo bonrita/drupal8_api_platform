@@ -16,7 +16,7 @@ use Symfony\Component\DependencyInjection\Exception\InvalidArgumentException;
 use Symfony\Component\DependencyInjection\Loader\XmlFileLoader;
 use Symfony\Component\DependencyInjection\Parameter;
 
-class ConfigPass implements CompilerPassInterface{
+class ConfigPass implements CompilerPassInterface {
 
   private $processedConfigs = [];
 
@@ -44,6 +44,7 @@ class ConfigPass implements CompilerPassInterface{
     $this->registerJsonLdHydraConfiguration($container, $formats, $loader, $config['enable_docs']);
     $this->registerGraphQlConfiguration($container, $config, $loader);
 //    $this->registerCacheConfiguration($container, $config);
+    $this->registerDoctrineOrmConfiguration($container, $config, $loader);
   }
 
   private function registerCommonConfiguration(ContainerBuilder $container, $config, XmlFileLoader $loader, $formats,  array $errorFormats) {
@@ -228,6 +229,19 @@ class ConfigPass implements CompilerPassInterface{
     }
 
     $loader->load('problem.xml');
+  }
+
+  private function registerDoctrineOrmConfiguration(
+    ContainerBuilder $container,
+    array $config,
+    XmlFileLoader $loader
+  ) {
+//    if (!$this->isConfigEnabled($container, $config['doctrine'])) {
+//      return;
+//    }
+
+    $loader->load('doctrine_orm.xml');
+
   }
 
 }

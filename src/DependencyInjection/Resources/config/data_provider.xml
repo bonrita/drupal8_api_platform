@@ -8,6 +8,23 @@
         <service id="api_platform.item_data_provider" class="Drupal\api_platform\Core\DataProvider\ChainItemDataProvider">
             <argument type="tagged" tag="api_platform.item_data_provider" />
         </service>
+
+      <service id="api_platform.collection_data_provider" class="Drupal\api_platform\Core\DataProvider\ChainCollectionDataProvider">
+<!--        <argument type="tagged" tag="api_platform.collection_data_provider" />-->
+
+        <call method="setContainer">
+          <argument type="service" id="service_container"/>
+        </call>
+      </service>
+
+      <service id="api_platform.subresource_data_provider" class="Drupal\api_platform\Core\DataProvider\ChainSubresourceDataProvider">
+<!--        <argument type="tagged" tag="api_platform.subresource_data_provider" />-->
+
+        <call method="setContainer">
+          <argument type="service" id="service_container"/>
+        </call>
+      </service>
+
     </services>
 
 </container>
