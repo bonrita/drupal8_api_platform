@@ -10,10 +10,13 @@ use Drupal\api_platform\Core\Exception\RuntimeException;
 use Drupal\api_platform\Core\Metadata\Extractor\EntityExtractor;
 use Drupal\api_platform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
 use Drupal\api_platform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
+use Drupal\api_platform\Core\Util\ResourceClassInfoTrait;
 use Symfony\Component\PropertyAccess\PropertyAccess;
 use Symfony\Component\PropertyAccess\PropertyAccessorInterface;
 
 final class IdentifiersExtractor implements IdentifiersExtractorInterface {
+
+  use ResourceClassInfoTrait;
 
   private $propertyNameCollectionFactory;
   private $propertyMetadataFactory;
@@ -56,7 +59,14 @@ final class IdentifiersExtractor implements IdentifiersExtractorInterface {
    * @inheritDoc
    */
   public function getIdentifiersFromItem($item): array {
-    // TODO: Implement getIdentifiersFromItem() method.
+    $identifiers = [];
+    $resourceClass = $this->getResourceClass($item, true);
+
+    if ($id = $this->entityExtractor->getIndentifier($resourceClass)) {
+      $identifiers[] = $id;
+    }
+
+    return $identifiers;
   }
 
 }

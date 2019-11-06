@@ -217,7 +217,8 @@ class ConfigPass implements CompilerPassInterface {
     }
 
     // @todo To be removed so that all modules are read.
-    $bundlesResourcesPaths = ['modules/custom/api_platform/src/Entity'];
+//    $bundlesResourcesPaths = ['modules/custom/api_platform/src/Entity'];
+    $bundlesResourcesPaths = ['core/modules/taxonomy/src/Entity'];
 
     return $bundlesResourcesPaths;
   }

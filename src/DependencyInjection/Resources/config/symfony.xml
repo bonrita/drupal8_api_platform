@@ -64,17 +64,18 @@
 <!--      <factory class="Symfony\Component\Cache\Adapter\AbstractAdapter" method="createSystemCache"/>-->
 <!--    </service>-->
 
-    <service id="serializer.normalizer.object" class="Symfony\Component\Serializer\Normalizer\ObjectNormalizer" public="false">
-      <tag name="normalizer" priority="-1000"/>
-      <argument type="service" id="serializer.mapping.class_metadata_factory"/>
-      <argument type="service" id="serializer.name_converter.metadata_aware"/>
-      <argument type="service" id="property_accessor"/>
-      <argument type="service" id="property_info" on-invalid="ignore"/>
-      <argument type="service" id="serializer.mapping.class_discriminator_resolver" on-invalid="ignore"/>
-      <argument>null</argument>
-      <argument type="collection"/>
-    </service>
+<!--    <service id="serializer.normalizer.object" class="Symfony\Component\Serializer\Normalizer\ObjectNormalizer" public="false">-->
+<!--      <tag name="normalizer" priority="-1000"/>-->
+<!--      <argument type="service" id="serializer.mapping.class_metadata_factory"/>-->
+<!--      <argument type="service" id="serializer.name_converter.metadata_aware"/>-->
+<!--      <argument type="service" id="property_accessor"/>-->
+<!--      <argument type="service" id="property_info" on-invalid="ignore"/>-->
+<!--      <argument type="service" id="serializer.mapping.class_discriminator_resolver" on-invalid="ignore"/>-->
+<!--      <argument>null</argument>-->
+<!--      <argument type="collection"/>-->
+<!--    </service>-->
 
+    <service id="api_platform.name_converter" alias="serializer.name_converter.metadata_aware"/>
     <service id="serializer.name_converter.metadata_aware" class="Drupal\api_platform\Component\Serializer\NameConverter\MetadataAwareNameConverter" public="false">
       <argument type="service" id="serializer.mapping.class_metadata_factory"/>
     </service>

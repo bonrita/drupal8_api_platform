@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Drupal\api_platform\Core\EventListener;
 
+use Drupal\api_platform\Core\Api\ResourceClassResolverInterface;
 use Drupal\api_platform\Core\DataProvider\CollectionDataProviderInterface;
 use Drupal\api_platform\Core\DataProvider\ItemDataProviderInterface;
 use Drupal\api_platform\Core\DataProvider\OperationDataProviderTrait;
@@ -33,7 +34,20 @@ class ReadListener implements EventSubscriberInterface {
 
   private $serializerContextBuilder;
 
-  public function __construct(CollectionDataProviderInterface $collectionDataProvider, ItemDataProviderInterface $itemDataProvider, SubresourceDataProviderInterface $subresourceDataProvider = null, SerializerContextBuilderInterface $serializerContextBuilder = null, IdentifierConverterInterface $identifierConverter = null, ResourceMetadataFactoryInterface $resourceMetadataFactory = null)
+  /**
+   * @var \Drupal\api_platform\Core\Api\ResourceClassResolverInterface
+   */
+  private $resourceClassResolver;
+
+  public function __construct(
+    CollectionDataProviderInterface $collectionDataProvider,
+    ItemDataProviderInterface $itemDataProvider,
+    ResourceClassResolverInterface $resourceClassResolver,
+    SubresourceDataProviderInterface $subresourceDataProvider = null,
+    SerializerContextBuilderInterface $serializerContextBuilder = null,
+    IdentifierConverterInterface $identifierConverter = null,
+    ResourceMetadataFactoryInterface $resourceMetadataFactory = null
+  )
   {
     $this->collectionDataProvider = $collectionDataProvider;
     $this->itemDataProvider = $itemDataProvider;
@@ -41,6 +55,7 @@ class ReadListener implements EventSubscriberInterface {
     $this->serializerContextBuilder = $serializerContextBuilder;
     $this->identifierConverter = $identifierConverter;
     $this->resourceMetadataFactory = $resourceMetadataFactory;
+    $this->resourceClassResolver = $resourceClassResolver;
   }
 
   /**
@@ -103,8 +118,6 @@ class ReadListener implements EventSubscriberInterface {
     }
 
     $request->attributes->set('data', $data);
-    $request->attributes->set('previous_data', $this->clone($data));
-
   }
 
   private function isOperationAttributeDisabled(

@@ -7,6 +7,12 @@ namespace Drupal\api_platform\Core\PropertyInfo\Metadata\Property;
 use Drupal\api_platform\Core\Exception\RuntimeException;
 use Drupal\api_platform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface;
 use Drupal\api_platform\Core\Metadata\Property\PropertyNameCollection;
+use Drupal\Core\Entity\ContentEntityTypeInterface;
+use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Entity\EntityStorageInterface;
+use Drupal\Core\Entity\EntityTypeInterface;
+use Drupal\Core\Entity\FieldableEntityInterface;
+use Drupal\field\Entity\FieldStorageConfig;
 use Symfony\Component\PropertyInfo\PropertyInfoExtractorInterface;
 
 /**

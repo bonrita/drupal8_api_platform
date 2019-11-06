@@ -21,6 +21,9 @@
 
     <service id="api_platform.resource_class_resolver" class="Drupal\api_platform\Core\Api\ResourceClassResolver" public="false">
       <argument type="service" id="api_platform.metadata.resource.name_collection_factory" />
+      <argument type="service" id="entity_type.repository" />
+      <argument type="service" id="entity_type.bundle.info" />
+      <argument type="service" id="entity_type.manager" />
     </service>
 
     <service id="api_platform.formats_provider" class="Drupal\api_platform\Core\Api\FormatsProvider">
@@ -39,6 +42,7 @@
 
     <service id="api_platform.operation_path_resolver.generator" class="Drupal\api_platform\Core\PathResolver\OperationPathResolver" public="false">
       <argument type="service" id="api_platform.path_segment_name_generator" />
+      <argument type="service" id="api_platform.resource_class_resolver" />
     </service>
 
     <service id="api_platform.path_segment_name_generator.underscore" class="Drupal\api_platform\Core\Operation\UnderscorePathSegmentNameGenerator" public="false" />
@@ -68,7 +72,7 @@
       <argument type="service" id="api_platform.route_name_resolver" />
       <argument type="service" id="api_platform.router" />
       <argument type="service" id="api_platform.property_accessor" />
-<!--      <argument type="service" id="api_platform.identifiers_extractor.cached" />-->
+      <argument type="service" id="api_platform.identifiers_extractor.cached" />
       <argument type="service" id="api_platform.subresource_data_provider" on-invalid="ignore" />
       <argument type="service" id="api_platform.identifier.converter" on-invalid="ignore" />
       <argument type="service" id="api_platform.resource_class_resolver" />
@@ -77,7 +81,10 @@
     <!-- Resources Operations path resolver -->
 
     <service id="api_platform.route_name_resolver" class="Drupal\api_platform\Core\Routing\RouteNameResolver" public="false">
-      <argument type="service" id="api_platform.router" />
+<!--      <argument type="service" id="api_platform.router" />-->
+      <argument type="service" id="router.route_provider" />
+      <argument type="service" id="state" />
+      <argument type="service" id="cache.bootstrap" />
     </service>
 
     <!-- Event listeners -->
@@ -115,9 +122,19 @@
     <service id="api_platform.listener.request.read" class="Drupal\api_platform\Core\EventListener\ReadListener">
       <argument type="service" id="api_platform.collection_data_provider" />
       <argument type="service" id="api_platform.item_data_provider" />
+      <argument type="service" id="api_platform.resource_class_resolver" />
       <argument type="service" id="api_platform.subresource_data_provider" />
       <argument type="service" id="api_platform.serializer.context_builder" />
       <argument type="service" id="api_platform.identifier.converter" />
+      <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
+
+      <tag name="event_subscriber" />
+    </service>
+
+    <service id="api_platform.listener.request.deserialize" class="Drupal\api_platform\Core\EventListener\DeserializeListener">
+      <argument type="service" id="api_platform.serializer" />
+      <argument type="service" id="api_platform.serializer.context_builder" />
+      <argument type="service" id="api_platform.formats_provider" />
       <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
 
       <tag name="event_subscriber" />
@@ -148,6 +165,7 @@
     <service id="api_platform.identifiers_extractor.cached" class="Drupal\api_platform\Core\Api\CachedIdentifiersExtractor" decorates="api_platform.identifiers_extractor" public="false">
 <!--    <service id="api_platform.identifiers_extractor.cached" class="Drupal\api_platform\Core\Api\CachedIdentifiersExtractor" public="false">-->
 <!--      <argument type="service" id="api_platform.cache.identifiers_extractor" />-->
+      <argument type="service" id="cache.bootstrap" />
       <argument type="service" id="api_platform.identifiers_extractor.cached.inner" />
       <argument type="service" id="api_platform.property_accessor" />
       <argument type="service" id="api_platform.resource_class_resolver" />
@@ -171,7 +189,8 @@
 
     <service id="api_platform.action.placeholder" class="Drupal\api_platform\Core\Action\PlaceholderAction" public="true" />
     <service id="api_platform.action.get_collection" alias="api_platform.action.placeholder" public="true" />
-    <service id="api_platform.action.post_collection" alias="api_platform.action.placeholder" public="true" />
+<!--    <service id="api_platform.action.post_collection" alias="api_platform.action.placeholder" public="true" />-->
+    <service id="api_platform.action.post_collection" class="Drupal\api_platform\Core\Action\PostCollectionAction" public="true" />
     <service id="api_platform.action.get_item" alias="api_platform.action.placeholder" public="true" />
     <service id="api_platform.action.patch_item" alias="api_platform.action.placeholder" public="true" />
     <service id="api_platform.action.put_item" alias="api_platform.action.placeholder" public="true" />

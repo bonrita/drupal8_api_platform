@@ -26,4 +26,45 @@ interface ResourceClassResolverInterface
      * Is the given class a resource class?
      */
     public function isResourceClass(string $type): bool;
+
+  /**
+   * Get entity bundles.
+   *
+   * @param string $resourceClass
+   *
+   * @return array
+   */
+  public function getBundles(string $resourceClass): array;
+
+  /**
+   * Get entity id key.
+   *
+   * @param string $resourceClass
+   *
+   * @return string
+   */
+  public function getIdKey(string $resourceClass): string;
+
+  /**
+   * Get entity type Id.
+   *
+   * @param string $resourceClass
+   *   The resource class.
+   *
+   * @return string
+   *   The entity type id.
+   */
+  public function getEntityTypeId(string $resourceClass): string;
+
+  /**
+   * Get bundle key.
+   *
+   * @param string $resourceClass
+   *   The resource class.
+   *
+   * @return string
+   *   Bundle key.
+   */
+  public function getBundleKey(string $resourceClass): string;
+
 }

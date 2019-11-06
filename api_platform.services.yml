@@ -7,6 +7,11 @@ parameters:
 
 services:
 
+#  api_platform.property_info_entity_extractor:
+#    class: Drupal\api_platform\PropertyInfo\Extractor\EntityExtractor
+#    tags:
+#      - { name: property_info.list_extractor }
+
   api_platform.path_processor:
     class: Drupal\api_platform\PathProcessor\PathProcessor
     tags:

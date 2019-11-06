@@ -26,16 +26,16 @@ final class CustomOperationPathResolver implements OperationPathResolverInterfac
   /**
    * {@inheritdoc}
    */
-  public function resolveOperationPath(string $resourceShortName, array $operation, $operationType/*, string $operationName = null*/): string {
-    if (\func_num_args() >= 4) {
-      $operationName = func_get_arg(3);
-    } else {
-      @trigger_error(sprintf('Method %s() will have a 4th `string $operationName` argument in version 3.0. Not defining it is deprecated since 2.1.', __METHOD__), E_USER_DEPRECATED);
+  public function resolveOperationPath(string $resourceShortName, array $operation, $operationType, string $resourceClass, string $operationName = null): string {
+//    if (\func_num_args() >= 4) {
+//      $operationName = func_get_arg(3);
+//    } else {
+//      @trigger_error(sprintf('Method %s() will have a 4th `string $operationName` argument in version 3.0. Not defining it is deprecated since 2.1.', __METHOD__), E_USER_DEPRECATED);
+//
+//      $operationName = null;
+//    }
 
-      $operationName = null;
-    }
-
-    return $operation['path'] ?? $this->deferred->resolveOperationPath($resourceShortName, $operation, OperationTypeDeprecationHelper::getOperationType($operationType), $operationName);
+    return $operation['path'] ?? $this->deferred->resolveOperationPath($resourceShortName, $operation, OperationTypeDeprecationHelper::getOperationType($operationType), $resourceClass, $operationName);
   }
 
 }

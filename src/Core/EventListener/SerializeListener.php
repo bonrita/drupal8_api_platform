@@ -4,8 +4,11 @@ declare(strict_types=1);
 
 namespace Drupal\api_platform\Core\EventListener;
 
+
 use Drupal\api_platform\Core\Exception\RuntimeException;
 use Drupal\api_platform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
+use Drupal\api_platform\Core\Metadata\Resource\ToggleableOperationAttributeTrait;
+use Drupal\api_platform\Core\Serializer\ResourceList;
 use Drupal\api_platform\Core\Serializer\SerializerContextBuilderInterface;
 use Drupal\api_platform\Core\Util\RequestAttributesExtractor;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
@@ -23,6 +26,8 @@ use Symfony\Component\Serializer\SerializerInterface;
  * Serializes data.
  */
 class SerializeListener implements EventSubscriberInterface {
+
+  use ToggleableOperationAttributeTrait;
 
   public const OPERATION_ATTRIBUTE_KEY = 'serialize';
 
@@ -58,6 +63,22 @@ class SerializeListener implements EventSubscriberInterface {
       return;
     }
 
+    $context = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
+
+    $resources = new ResourceList();
+    $context['resources'] = &$resources;
+
+    $resourcesToPush = new ResourceList();
+    $context['resources_to_push'] = &$resourcesToPush;
+
+    $request->attributes->set('_api_normalization_context', $context);
+
+    $event->setControllerResult($this->serializer->serialize($controllerResult, $request->getRequestFormat(), $context));
+
+    $request->attributes->set('_resources', $request->attributes->get('_resources', []) + (array) $resources);
+    if (!\count($resourcesToPush)) {
+      return;
+    }
 
     $gg = $attributes;
     $gg =0;

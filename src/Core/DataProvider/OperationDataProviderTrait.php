@@ -33,6 +33,10 @@ trait OperationDataProviderTrait
      */
     private $identifierConverter;
 
+    /**
+     * @var \Drupal\api_platform\Core\Api\ResourceClassResolverInterface
+     */
+    private $resourceClassResolver;
 
     /**
      * @param array $parameters - usually comes from $request->attributes->all()
@@ -42,15 +46,22 @@ trait OperationDataProviderTrait
     private function extractIdentifiers(array $parameters, array $attributes)
     {
         if (isset($attributes['item_operation_name'])) {
-            if (!isset($parameters['id'])) {
-                throw new InvalidIdentifierException('Parameter "id" not found');
-            }
+          $idKey = $this->resourceClassResolver->getIdKey($attributes["resource_class"]);
+//          if (!isset($parameters['id'])) {
+//              throw new InvalidIdentifierException('Parameter "id" not found');
+//          }
+//
+//          $id = $parameters['id'];
 
-            $id = $parameters['id'];
+          if (!isset($parameters[$idKey])) {
+            throw new InvalidIdentifierException('Parameter "id" not found');
+          }
 
-            if (null !== $this->identifierConverter) {
-                return $this->identifierConverter->convert((string) $id, $attributes['resource_class']);
-            }
+          $id = $parameters[$idKey];
+
+          if (null !== $this->identifierConverter) {
+              return $this->identifierConverter->convert((string) $id, $attributes['resource_class']);
+          }
 
         }
 

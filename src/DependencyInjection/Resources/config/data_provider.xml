@@ -6,7 +6,10 @@
 
     <services>
         <service id="api_platform.item_data_provider" class="Drupal\api_platform\Core\DataProvider\ChainItemDataProvider">
-            <argument type="tagged" tag="api_platform.item_data_provider" />
+<!--            <argument type="tagged" tag="api_platform.item_data_provider" />-->
+          <call method="setContainer">
+            <argument type="service" id="service_container"/>
+          </call>
         </service>
 
       <service id="api_platform.collection_data_provider" class="Drupal\api_platform\Core\DataProvider\ChainCollectionDataProvider">

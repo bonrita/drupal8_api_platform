@@ -6,6 +6,7 @@ namespace Drupal\api_platform\Core\PathResolver;
 
 use Drupal\api_platform\Core\Api\OperationType;
 use Drupal\api_platform\Core\Api\OperationTypeDeprecationHelper;
+use Drupal\api_platform\Core\Api\ResourceClassResolverInterface;
 use Drupal\api_platform\Core\Exception\InvalidArgumentException;
 use Drupal\api_platform\Core\Operation\PathSegmentNameGeneratorInterface;
 
@@ -20,16 +21,22 @@ final class OperationPathResolver implements OperationPathResolverInterface {
 
   private $pathSegmentNameGenerator;
 
-  public function __construct(PathSegmentNameGeneratorInterface $pathSegmentNameGenerator)
+  /**
+   * @var \Drupal\api_platform\Core\Api\ResourceClassResolverInterface
+   */
+  private $resourceClassResolver;
+
+  public function __construct(PathSegmentNameGeneratorInterface $pathSegmentNameGenerator, ResourceClassResolverInterface $resourceClassResolver)
   {
     $this->pathSegmentNameGenerator = $pathSegmentNameGenerator;
+    $this->resourceClassResolver = $resourceClassResolver;
   }
 
 
   /**
    * @inheritDoc
    */
-  public function resolveOperationPath(string $resourceShortName, array $operation, $operationType): string {
+  public function resolveOperationPath(string $resourceShortName, array $operation, $operationType, string $resourceClass, string $operationName = null): string {
     if (\func_num_args() < 4) {
       @trigger_error(sprintf('Method %s() will have a 4th `string $operationName` argument in version 3.0. Not defining it is deprecated since 2.1.', __METHOD__), E_USER_DEPRECATED);
     }
@@ -43,7 +50,9 @@ final class OperationPathResolver implements OperationPathResolverInterface {
     $path = '/'.$this->pathSegmentNameGenerator->getSegmentName($resourceShortName);
 
     if (OperationType::ITEM === $operationType) {
-      $path .= '/{id}';
+      $idKey = $this->resourceClassResolver->getIdKey($resourceClass);
+//      $path .= '/{id}';
+      $path .= "/{{$idKey}}";
     }
 
 //    $path .= '.{_format}';

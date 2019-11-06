@@ -20,6 +20,23 @@
       <tag name="event_subscriber"/>
     </service>
 
+    <service id="api_platform.property_info_entity_extractor" class="Drupal\api_platform\PropertyInfo\Extractor\EntityExtractor">
+      <argument type="service" id="entity_type.manager" />
+      <argument type="service" id="entity_type.repository" />
+      <argument type="service" id="entity_field.manager" />
+      <argument type="service" id="plugin.manager.field.field_type" />
+
+      <tag name="property_info.list_extractor"/>
+      <tag name="property_info.type_extractor" />
+    </service>
+
+    <service id="api_platform.doctrine.orm.default.item_data_provider" class="Drupal\api_platform\Core\DataProvider\Drupal\ItemDataProvider">
+      <argument type="service" id="api_platform.resource_class_resolver" />
+      <argument type="service" id="entity_type.manager" />
+
+      <tag name="api_platform.item_data_provider" />
+    </service>
+
     <!--    Path processors-->
 <!--    <service id="api_platform.path_processor" class="Drupal\api_platform\PathProcessor\PathProcessor">-->
 <!--      <tag name="path_processor_outbound" priority="400"/>-->

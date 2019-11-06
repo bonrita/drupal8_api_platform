@@ -138,7 +138,7 @@ final class DocumentationNormalizer implements NormalizerInterface {
       // Items needs to be parsed first to be able to reference the lines from the collection operation
       $this->addPaths($v3, $paths, $definitions, $resourceClass, $resourceShortName, $resourceMetadata, $mimeTypes, OperationType::ITEM, $links);
       $this->addPaths($v3, $paths, $definitions, $resourceClass, $resourceShortName, $resourceMetadata, $mimeTypes, OperationType::COLLECTION, $links);
-      $gg =0;
+
     }
 
     return $this->computeDoc($v3, $object, $definitions, $paths, $context);
@@ -186,23 +186,26 @@ final class DocumentationNormalizer implements NormalizerInterface {
    */
   private function addPaths(bool $v3, \ArrayObject $paths, \ArrayObject $definitions, string $resourceClass, string $resourceShortName, ResourceMetadata $resourceMetadata, array $mimeTypes, string $operationType, \ArrayObject $links)
   {
-    // ---- bon----
-    $coll = $resourceMetadata->getCollectionOperations();
-    $res = $resourceMetadata->getItemOperations();
-
-    $gg = $coll = $res;
-    // ---- end bon----s
 
     if (null === $operations = OperationType::COLLECTION === $operationType ? $resourceMetadata->getCollectionOperations() : $resourceMetadata->getItemOperations()) {
       return;
     }
 
+    $context = [];
+    $bundles = array_keys($this->resourceClassResolver->getBundles($resourceClass));
+    $bundleKey = $this->resourceClassResolver->getBundleKey($resourceClass);
+
     foreach ($operations as $operationName => $operation) {
-      $path = $this->getPath($resourceShortName, $operationName, $operation, $operationType);
+      $path = $this->getPath($resourceShortName, $operationName, $operation, $operationType, $resourceClass);
       $method = OperationType::ITEM === $operationType ? $this->operationMethodResolver->getItemOperationMethod($resourceClass, $operationName) : $this->operationMethodResolver->getCollectionOperationMethod($resourceClass, $operationName);
 
-      $paths[$path][strtolower($method)] = $this->getPathOperation($v3, $operationName, $operation, $method, $operationType, $resourceClass, $resourceMetadata, $mimeTypes, $definitions, $links);
+      foreach ($bundles as $bundle) {
+        $context['bundle'] = $bundle;
+        $paths[$path."?{$bundleKey}=".$bundle][strtolower($method)] = $this->getPathOperation($v3, $operationName, $operation, $method, $operationType, $resourceClass, $resourceMetadata, $mimeTypes, $definitions, $links, $context);
+      }
+
     }
+
   }
 
   /**
@@ -213,9 +216,9 @@ final class DocumentationNormalizer implements NormalizerInterface {
    *
    * @see https://github.com/OAI/OpenAPI-Specification/issues/93
    */
-  private function getPath(string $resourceShortName, string $operationName, array $operation, string $operationType): string
+  private function getPath(string $resourceShortName, string $operationName, array $operation, string $operationType, string $resourceClass): string
   {
-    $path = $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $operationName);
+    $path = $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $resourceClass, $operationName);
     if ('.{_format}' === substr($path, -10)) {
       $path = substr($path, 0, -10);
     }
@@ -230,12 +233,17 @@ final class DocumentationNormalizer implements NormalizerInterface {
    *
    * @param string[] $mimeTypes
    */
-  private function getPathOperation(bool $v3, string $operationName, array $operation, string $method, string $operationType, string $resourceClass, ResourceMetadata $resourceMetadata, array $mimeTypes, \ArrayObject $definitions, \ArrayObject $links): \ArrayObject
+  private function getPathOperation(bool $v3, string $operationName, array $operation, string $method, string $operationType, string $resourceClass, ResourceMetadata $resourceMetadata, array $mimeTypes, \ArrayObject $definitions, \ArrayObject $links, array $context): \ArrayObject
   {
     $pathOperation = new \ArrayObject($operation[$v3 ? 'openapi_context' : 'swagger_context'] ?? []);
     $resourceShortName = $resourceMetadata->getShortName();
     $pathOperation['tags'] ?? $pathOperation['tags'] = [$resourceShortName];
     $pathOperation['operationId'] ?? $pathOperation['operationId'] = lcfirst($operationName).ucfirst($resourceShortName).ucfirst($operationType);
+
+    if (isset($context['bundle']) && !empty($context['bundle'])) {
+      $pathOperation['operationId'] = $pathOperation['operationId'].ucfirst($context['bundle']);
+    }
+
     if ($v3 && 'GET' === $method && OperationType::ITEM === $operationType && $link = $this->getLinkObject($resourceClass, $pathOperation['operationId'], $this->getPath($resourceShortName, $operationName, $operation, $operationType))) {
       $links[$pathOperation['operationId']] = $link;
     }
@@ -246,18 +254,19 @@ final class DocumentationNormalizer implements NormalizerInterface {
       $responseFormats = $this->formatsProvider->getFormatsFromOperation($resourceClass, $operationName, $operationType);
       $responseMimeTypes = $this->extractMimeTypes($responseFormats);
     }
+
     switch ($method) {
       case 'GET':
-        return $this->updateGetOperation($v3, $pathOperation, $responseMimeTypes ?? $mimeTypes, $operationType, $resourceMetadata, $resourceClass, $resourceShortName, $operationName, $definitions);
+        return $this->updateGetOperation($v3, $pathOperation, $responseMimeTypes ?? $mimeTypes, $operationType, $resourceMetadata, $resourceClass, $resourceShortName, $operationName, $definitions, $context);
       case 'POST':
-        return $this->updatePostOperation($v3, $pathOperation, $responseMimeTypes ?? $mimeTypes, $operationType, $resourceMetadata, $resourceClass, $resourceShortName, $operationName, $definitions, $links);
+        return $this->updatePostOperation($v3, $pathOperation, $responseMimeTypes ?? $mimeTypes, $operationType, $resourceMetadata, $resourceClass, $resourceShortName, $operationName, $definitions, $links, $context);
       case 'PATCH':
         $pathOperation['summary'] ?? $pathOperation['summary'] = sprintf('Updates the %s resource.', $resourceShortName);
       // no break
       case 'PUT':
-        return $this->updatePutOperation($v3, $pathOperation, $responseMimeTypes ?? $mimeTypes, $operationType, $resourceMetadata, $resourceClass, $resourceShortName, $operationName, $definitions);
+        return $this->updatePutOperation($v3, $pathOperation, $responseMimeTypes ?? $mimeTypes, $operationType, $resourceMetadata, $resourceClass, $resourceShortName, $operationName, $definitions, $context);
       case 'DELETE':
-        return $this->updateDeleteOperation($v3, $pathOperation, $resourceShortName, $operationType, $operationName, $resourceMetadata);
+        return $this->updateDeleteOperation($v3, $pathOperation, $resourceShortName, $operationType, $operationName, $resourceMetadata, $context, $resourceClass);
     }
 
     return $pathOperation;
@@ -275,9 +284,10 @@ final class DocumentationNormalizer implements NormalizerInterface {
     return $responseMimeTypes;
   }
 
-  private function updateGetOperation(bool $v3, \ArrayObject $pathOperation, array $mimeTypes, string $operationType, ResourceMetadata $resourceMetadata, string $resourceClass, string $resourceShortName, string $operationName, \ArrayObject $definitions): \ArrayObject
+  private function updateGetOperation(bool $v3, \ArrayObject $pathOperation, array $mimeTypes, string $operationType, ResourceMetadata $resourceMetadata, string $resourceClass, string $resourceShortName, string $operationName, \ArrayObject $definitions, array $context): \ArrayObject
   {
     $serializerContext = $this->getSerializerContext($operationType, false, $resourceMetadata, $operationName);
+    $serializerContext = is_null($serializerContext)? $context : $serializerContext + $context;
 
     $responseDefinitionKey = false;
     $outputMetadata = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'output', ['class' => $resourceClass], true);
@@ -354,7 +364,7 @@ final class DocumentationNormalizer implements NormalizerInterface {
 
     $pathOperation['summary'] ?? $pathOperation['summary'] = sprintf('Retrieves a %s resource.', $resourceShortName);
 
-    $pathOperation = $this->addItemOperationParameters($v3, $pathOperation);
+    $pathOperation = $this->addItemOperationParameters($v3, $pathOperation, $resourceClass);
 
     $successResponse = ['description' => sprintf('%s resource response', $resourceShortName)];
     if ($responseDefinitionKey) {
@@ -397,11 +407,14 @@ final class DocumentationNormalizer implements NormalizerInterface {
       $definitionKey = $this->getDefinitionKey($keyPrefix, (array) ($serializerContext[AbstractNormalizer::GROUPS] ?? []));
     }
 
+    if (isset($serializerContext['bundle']) && !empty($serializerContext['bundle'])) {
+      $definitionKey = $definitionKey.':'.$serializerContext['bundle'];
+    }
+
     if (!isset($definitions[$definitionKey])) {
       $definitions[$definitionKey] = [];  // Initialize first to prevent infinite loop
       $definitions[$definitionKey] = $this->getDefinitionSchema($v3, $publicClass ?? $resourceClass, $resourceMetadata, $definitions, $serializerContext);
     }
-
     return $definitionKey;
   }
 
@@ -428,19 +441,22 @@ final class DocumentationNormalizer implements NormalizerInterface {
     }
 
     $options = isset($serializerContext[AbstractNormalizer::GROUPS]) ? ['serializer_groups' => $serializerContext[AbstractNormalizer::GROUPS]] : [];
-        foreach ($this->propertyNameCollectionFactory->create($resourceClass, $options) as $propertyName) {
-          $propertyMetadata = $this->propertyMetadataFactory->create($resourceClass, $propertyName);
-          if (!$propertyMetadata->isReadable() && !$propertyMetadata->isWritable()) {
-            continue;
-          }
+    $options['entity_class'] = TRUE;
+    $options['bundle'] = $serializerContext['bundle'];
 
-          $normalizedPropertyName = $this->nameConverter ? $this->nameConverter->normalize($propertyName, $resourceClass, self::FORMAT, $serializerContext ?? []) : $propertyName;
-          if ($propertyMetadata->isRequired()) {
-            $definitionSchema['required'][] = $normalizedPropertyName;
-          }
+    foreach ($this->propertyNameCollectionFactory->create($resourceClass, $options) as $propertyName) {
+      $propertyMetadata = $this->propertyMetadataFactory->create($resourceClass, $propertyName, $options);
+      if (!$propertyMetadata->isReadable() && !$propertyMetadata->isWritable()) {
+        continue;
+      }
 
-          $definitionSchema['properties'][$normalizedPropertyName] = $this->getPropertySchema($v3, $propertyMetadata, $definitions, $serializerContext);
-        }
+      $normalizedPropertyName = $this->nameConverter ? $this->nameConverter->normalize($propertyName, $resourceClass, self::FORMAT, $serializerContext ?? []) : $propertyName;
+      if ($propertyMetadata->isRequired()) {
+        $definitionSchema['required'][] = $normalizedPropertyName;
+      }
+
+      $definitionSchema['properties'][$normalizedPropertyName] = $this->getPropertySchema($v3, $propertyMetadata, $definitions, $serializerContext);
+    }
 
     return $definitionSchema;
   }
@@ -531,10 +547,11 @@ final class DocumentationNormalizer implements NormalizerInterface {
     return ['type' => 'string'];
   }
 
-  private function addItemOperationParameters(bool $v3, \ArrayObject $pathOperation): \ArrayObject
+  private function addItemOperationParameters(bool $v3, \ArrayObject $pathOperation, string $resourceClass): \ArrayObject
   {
     $parameter = [
-      'name' => 'id',
+//      'name' => 'id',
+      'name' => $this->resourceClassResolver->getIdKey($resourceClass),
       'in' => 'path',
       'required' => true,
     ];
@@ -544,7 +561,7 @@ final class DocumentationNormalizer implements NormalizerInterface {
     return $pathOperation;
   }
 
-  private function updateDeleteOperation(bool $v3, \ArrayObject $pathOperation, string $resourceShortName, string $operationType, string $operationName, ResourceMetadata $resourceMetadata): \ArrayObject
+  private function updateDeleteOperation(bool $v3, \ArrayObject $pathOperation, string $resourceShortName, string $operationType, string $operationName, ResourceMetadata $resourceMetadata, array $context, string $resourceClass): \ArrayObject
   {
     $pathOperation['summary'] ?? $pathOperation['summary'] = sprintf('Removes the %s resource.', $resourceShortName);
     $pathOperation['responses'] ?? $pathOperation['responses'] = [
@@ -552,10 +569,10 @@ final class DocumentationNormalizer implements NormalizerInterface {
       '404' => ['description' => 'Resource not found'],
     ];
 
-    return $this->addItemOperationParameters($v3, $pathOperation);
+    return $this->addItemOperationParameters($v3, $pathOperation, $resourceClass);
   }
 
-  private function updatePutOperation(bool $v3, \ArrayObject $pathOperation, array $mimeTypes, string $operationType, ResourceMetadata $resourceMetadata, string $resourceClass, string $resourceShortName, string $operationName, \ArrayObject $definitions): \ArrayObject
+  private function updatePutOperation(bool $v3, \ArrayObject $pathOperation, array $mimeTypes, string $operationType, ResourceMetadata $resourceMetadata, string $resourceClass, string $resourceShortName, string $operationName, \ArrayObject $definitions, array $context): \ArrayObject
   {
     if (!$v3) {
       $pathOperation['consumes'] ?? $pathOperation['consumes'] = $mimeTypes;
@@ -564,12 +581,14 @@ final class DocumentationNormalizer implements NormalizerInterface {
 
     $pathOperation['summary'] ?? $pathOperation['summary'] = sprintf('Replaces the %s resource.', $resourceShortName);
 
-    $pathOperation = $this->addItemOperationParameters($v3, $pathOperation);
+    $pathOperation = $this->addItemOperationParameters($v3, $pathOperation, $resourceClass);
 
     $responseDefinitionKey = false;
     $outputMetadata = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'output', ['class' => $resourceClass], true);
     if (null !== $outputClass = $outputMetadata['class'] ?? null) {
-      $responseDefinitionKey = $this->getDefinition($v3, $definitions, $resourceMetadata, $resourceClass, $outputClass, $this->getSerializerContext($operationType, false, $resourceMetadata, $operationName));
+      $serializerContext = $this->getSerializerContext($operationType, false, $resourceMetadata, $operationName);
+      $serializerContext = is_null($serializerContext)? $context : $serializerContext + $context;
+      $responseDefinitionKey = $this->getDefinition($v3, $definitions, $resourceMetadata, $resourceClass, $outputClass, $serializerContext);
     }
 
     $successResponse = ['description' => sprintf('%s resource updated', $resourceShortName)];
@@ -592,7 +611,9 @@ final class DocumentationNormalizer implements NormalizerInterface {
       return $pathOperation;
     }
 
-    $requestDefinitionKey = $this->getDefinition($v3, $definitions, $resourceMetadata, $resourceClass, $inputClass, $this->getSerializerContext($operationType, true, $resourceMetadata, $operationName));
+    $serializerContext = $this->getSerializerContext($operationType, true, $resourceMetadata, $operationName);
+    $serializerContext = is_null($serializerContext)? $context : $serializerContext + $context;
+    $requestDefinitionKey = $this->getDefinition($v3, $definitions, $resourceMetadata, $resourceClass, $inputClass, $serializerContext);
     if ($v3) {
       $pathOperation['requestBody'] ?? $pathOperation['requestBody'] = [
         'content' => array_fill_keys($mimeTypes, ['schema' => ['$ref' => sprintf('#/components/schemas/%s', $requestDefinitionKey)]]),
@@ -659,7 +680,7 @@ final class DocumentationNormalizer implements NormalizerInterface {
     return $parameters;
   }
 
-  private function updatePostOperation(bool $v3, \ArrayObject $pathOperation, array $mimeTypes, string $operationType, ResourceMetadata $resourceMetadata, string $resourceClass, string $resourceShortName, string $operationName, \ArrayObject $definitions, \ArrayObject $links): \ArrayObject
+  private function updatePostOperation(bool $v3, \ArrayObject $pathOperation, array $mimeTypes, string $operationType, ResourceMetadata $resourceMetadata, string $resourceClass, string $resourceShortName, string $operationName, \ArrayObject $definitions, \ArrayObject $links, array $context): \ArrayObject
   {
     if (!$v3) {
       $pathOperation['consumes'] ?? $pathOperation['consumes'] = $mimeTypes;
@@ -676,7 +697,9 @@ final class DocumentationNormalizer implements NormalizerInterface {
     $responseDefinitionKey = false;
     $outputMetadata = $resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'output', ['class' => $resourceClass], true);
     if (null !== $outputClass = $outputMetadata['class'] ?? null) {
-      $responseDefinitionKey = $this->getDefinition($v3, $definitions, $resourceMetadata, $resourceClass, $outputClass, $this->getSerializerContext($operationType, false, $resourceMetadata, $operationName));
+      $serializerContext = $this->getSerializerContext($operationType, false, $resourceMetadata, $operationName);
+      $serializerContext = is_null($serializerContext)? $context : $serializerContext + $context;
+      $responseDefinitionKey = $this->getDefinition($v3, $definitions, $resourceMetadata, $resourceClass, $outputClass, $serializerContext);
     }
 
     $successResponse = ['description' => sprintf('%s resource created', $resourceShortName)];
@@ -702,7 +725,9 @@ final class DocumentationNormalizer implements NormalizerInterface {
       return $pathOperation;
     }
 
-    $requestDefinitionKey = $this->getDefinition($v3, $definitions, $resourceMetadata, $resourceClass, $inputClass, $this->getSerializerContext($operationType, true, $resourceMetadata, $operationName));
+    $serializerContext = $this->getSerializerContext($operationType, true, $resourceMetadata, $operationName);
+    $serializerContext = is_null($serializerContext)? $context : $serializerContext + $context;
+    $requestDefinitionKey = $this->getDefinition($v3, $definitions, $resourceMetadata, $resourceClass, $inputClass, $serializerContext);
     if ($v3) {
       $pathOperation['requestBody'] ?? $pathOperation['requestBody'] = [
         'content' => array_fill_keys($mimeTypes, ['schema' => ['$ref' => sprintf('#/components/schemas/%s', $requestDefinitionKey)]]),

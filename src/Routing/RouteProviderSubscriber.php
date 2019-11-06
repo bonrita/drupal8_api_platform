@@ -168,7 +168,7 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
     }
 
     $path = trim(trim($resourceMetadata->getAttribute('route_prefix', 'api')), '/');
-    $path .= $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $operationName);
+    $path .= $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $resourceClass, $operationName);
 
     $route = new Route(
       $path,

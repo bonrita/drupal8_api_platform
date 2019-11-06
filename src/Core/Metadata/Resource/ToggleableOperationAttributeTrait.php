@@ -18,6 +18,14 @@ trait ToggleableOperationAttributeTrait
 
     private function isOperationAttributeDisabled(array $attributes, string $attribute, bool $default = false, bool $resourceFallback = true): bool
     {
-return FALSE;
+//return FALSE;
+
+      if (null === $this->resourceMetadataFactory) {
+        return $default;
+      }
+
+      $resourceMetadata = $this->resourceMetadataFactory->create($attributes['resource_class']);
+
+      return !((bool) $resourceMetadata->getOperationAttribute($attributes, $attribute, !$default, $resourceFallback));
     }
 }
