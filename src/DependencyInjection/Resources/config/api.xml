@@ -24,6 +24,7 @@
       <argument type="service" id="entity_type.repository" />
       <argument type="service" id="entity_type.bundle.info" />
       <argument type="service" id="entity_type.manager" />
+      <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
     </service>
 
     <service id="api_platform.formats_provider" class="Drupal\api_platform\Core\Api\FormatsProvider">

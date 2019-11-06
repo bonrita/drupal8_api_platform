@@ -32,6 +32,12 @@
         <argument type="service" id="api_platform.metadata.property.metadata_factory.property_info.inner" />
       </service>
 
+      <!-- Property Drupal related collection -->
+
+      <service id="api_platform.metadata.resource.metadata_factory.wrapped_entity" class="Drupal\api_platform\Core\Metadata\Resource\Factory\WrappedEntityResourceMetadataFactory" decorates="api_platform.metadata.resource.metadata_factory" decoration-priority="30" public="false">
+        <argument type="service" id="annotation_reader" />
+        <argument type="service" id="api_platform.metadata.resource.metadata_factory.wrapped_entity.inner" />
+      </service>
 
     </services>
 

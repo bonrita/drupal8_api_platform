@@ -40,7 +40,7 @@ final class ExtractorResourceMetadataFactory implements ResourceMetadataFactoryI
       return $this->handleNotFound($parentResourceMetadata, $resourceClass);
     }
 
-    return $this->update($parentResourceMetadata ?: new \ApiPlatform\Core\Metadata\Resource\ResourceMetadata(), $resource);
+    return $this->update($parentResourceMetadata ?: new ResourceMetadata(), $resource);
   }
 
   /**

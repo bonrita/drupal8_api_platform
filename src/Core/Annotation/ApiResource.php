@@ -3,12 +3,56 @@
 
 namespace Drupal\api_platform\Core\Annotation;
 
+use Drupal\api_platform\Core\Exception\InvalidArgumentException;
+
 /**
  * Class ApiResource
  *
  * @package Drupal\api_platform\Core\Annotation
  *
  * @Annotation
+ * @Target({"CLASS"})
+ * @Attributes(
+ *     @Attribute("accessControl", type="string"),
+ *     @Attribute("accessControlMessage", type="string"),
+ *     @Attribute("attributes", type="array"),
+ *     @Attribute("cacheHeaders", type="array"),
+ *     @Attribute("collectionOperations", type="array"),
+ *     @Attribute("denormalizationContext", type="array"),
+ *     @Attribute("deprecationReason", type="string"),
+ *     @Attribute("description", type="string"),
+ *     @Attribute("elasticsearch", type="bool"),
+ *     @Attribute("fetchPartial", type="bool"),
+ *     @Attribute("forceEager", type="bool"),
+ *     @Attribute("formats", type="array"),
+ *     @Attribute("filters", type="string[]"),
+ *     @Attribute("graphql", type="array"),
+ *     @Attribute("hydraContext", type="array"),
+ *     @Attribute("input", type="mixed"),
+ *     @Attribute("iri", type="string"),
+ *     @Attribute("itemOperations", type="array"),
+ *     @Attribute("maximumItemsPerPage", type="int"),
+ *     @Attribute("mercure", type="mixed"),
+ *     @Attribute("messenger", type="mixed"),
+ *     @Attribute("normalizationContext", type="array"),
+ *     @Attribute("openapiContext", type="array"),
+ *     @Attribute("order", type="array"),
+ *     @Attribute("output", type="mixed"),
+ *     @Attribute("paginationClientEnabled", type="bool"),
+ *     @Attribute("paginationClientItemsPerPage", type="bool"),
+ *     @Attribute("paginationClientPartial", type="bool"),
+ *     @Attribute("paginationEnabled", type="bool"),
+ *     @Attribute("paginationFetchJoinCollection", type="bool"),
+ *     @Attribute("paginationItemsPerPage", type="int"),
+ *     @Attribute("paginationPartial", type="bool"),
+ *     @Attribute("routePrefix", type="string"),
+ *     @Attribute("shortName", type="string"),
+ *     @Attribute("subresourceOperations", type="array"),
+ *     @Attribute("sunset", type="string"),
+ *     @Attribute("swaggerContext", type="array"),
+ *     @Attribute("validationGroups", type="mixed"),
+ *      @Attribute("drupalEntity", type="array"),
+ * )
  */
 final class ApiResource {
 
@@ -259,5 +303,12 @@ final class ApiResource {
    */
   private $openapiContext;
 
+  /**
+   * @throws InvalidArgumentException
+   */
+  public function __construct(array $values = [])
+  {
+    $this->hydrateAttributes($values);
+  }
 
 }

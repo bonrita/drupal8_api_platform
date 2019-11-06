@@ -24,6 +24,8 @@ final class ResourceMetadata {
   private $graphql;
   private $attributes;
 
+  private $drupalEntity;
+
   public function __construct(string $shortName = null, string $description = null, string $iri = null, array $itemOperations = null, array $collectionOperations = null, array $attributes = null, array $subresourceOperations = null, array $graphql = null)
   {
     $this->shortName = $shortName;
@@ -301,5 +303,23 @@ final class ResourceMetadata {
 
     return $defaultValue;
   }
+
+  /**
+   * Gets Drupal related attributes.
+   */
+  public function getDrupalEntity(): ?array {
+    return $this->drupalEntity;
+  }
+
+  /**
+   * Returns a new instance with the given Drupal entity attributes.
+   */
+  public function withDrupalEntity(array $drupalEntity): self {
+    $metadata = clone $this;
+    $metadata->drupalEntity = $drupalEntity;
+
+    return $metadata;
+  }
+
 }
 

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace Drupal\api_platform\Core\Api;
 
+use Drupal\api_platform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface;
 use Drupal\api_platform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use Drupal\api_platform\Core\Api\ResourceClassResolverInterface;
 use Drupal\api_platform\Core\Exception\InvalidArgumentException;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityTypeRepositoryInterface;
+use Drupal\Core\Entity\Exception\NoCorrespondingEntityClassException;
 use Symfony\Component\Serializer\Exception\UnexpectedValueException;
 
 /**
@@ -37,17 +39,24 @@ class ResourceClassResolver implements ResourceClassResolverInterface {
    */
   private $entityTypeManager;
 
+  /**
+   * @var \Drupal\api_platform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryInterface
+   */
+  private $resourceMetadataFactory;
+
   public function __construct(
     ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory,
     EntityTypeRepositoryInterface $entityTypeRepository,
     EntityTypeBundleInfoInterface $entityTypeBundleInfo,
-    EntityTypeManagerInterface $entityTypeManager
+    EntityTypeManagerInterface $entityTypeManager,
+    ResourceMetadataFactoryInterface $resourceMetadataFactory
 )
   {
     $this->resourceNameCollectionFactory = $resourceNameCollectionFactory;
     $this->entityTypeRepository = $entityTypeRepository;
     $this->entityTypeBundleInfo = $entityTypeBundleInfo;
     $this->entityTypeManager = $entityTypeManager;
+    $this->resourceMetadataFactory = $resourceMetadataFactory;
   }
 
   /**
@@ -138,7 +147,14 @@ class ResourceClassResolver implements ResourceClassResolverInterface {
    * {@inheritDoc}
    */
   public function getEntityTypeId(string $resourceClass): string {
-    return $this->entityTypeRepository->getEntityTypeFromClass($resourceClass);
+
+   try{
+     $entityTypeId = $this->entityTypeRepository->getEntityTypeFromClass($resourceClass);
+   } catch (NoCorrespondingEntityClassException $e) {
+     $tt =  $this->resourceMetadataFactory->create($resourceClass);
+     $entityTypeId = NULL;
+   }
+    return $entityTypeId;
   }
 
   /**
