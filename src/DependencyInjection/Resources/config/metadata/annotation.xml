@@ -6,7 +6,7 @@
 
   <services>
 
-    <service id="api_platform.metadata.resource.name_collection_factory.annotation" decorates="api_platform.metadata.resource.name_collection_factory" class="Drupal\api_platform\Core\Metadata\Resource\Factory\AnnotationResourceNameCollectionFactory" public="false">
+    <service id="api_platform.metadata.resource.name_collection_factory.annotation" decorates="api_platform.metadata.resource.name_collection_factory" decoration-priority="40" class="Drupal\api_platform\Core\Metadata\Resource\Factory\AnnotationResourceNameCollectionFactory" public="false">
       <argument type="service" id="annotation_reader" />
       <argument>%api_platform.resource_class_directories%</argument>
       <argument type="service" id="api_platform.metadata.resource.name_collection_factory.annotation.inner" />
@@ -21,6 +21,14 @@
       <argument type="service" id="annotation_reader" />
       <argument type="service" id="api_platform.metadata.resource.metadata_factory.annotation.inner" />
     </service>
+
+<!--    Wrapped entity classes-->
+
+<!--    <service id="api_platform.metadata.resource.name_collection_factory.wrapped_entity" decorates="api_platform.metadata.resource.name_collection_factory" decoration-priority="20" class="Drupal\api_platform\Core\Metadata\Resource\Factory\WrappedEntityResourceNameCollectionFactory" public="false">-->
+<!--      <argument type="service" id="annotation_reader" />-->
+<!--      <argument>%api_platform.resource_class_directories%</argument>-->
+<!--      <argument type="service" id="api_platform.metadata.resource.name_collection_factory.wrapped_entity.inner" />-->
+<!--    </service>-->
 
   </services>
 

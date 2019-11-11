@@ -207,7 +207,7 @@ class ConfigPass implements CompilerPassInterface {
 
     foreach ($container->getParameter('container.namespaces') as $dirname) {
       $paths = [];
-      $paths[] = "$dirname/Entity";
+      $paths[] = "$dirname/ApiEntity";
 
       foreach ($paths as $path) {
         if ($container->fileExists($path, false)) {
@@ -217,7 +217,7 @@ class ConfigPass implements CompilerPassInterface {
     }
 
     // @todo To be removed so that all modules are read.
-    $bundlesResourcesPaths = ['modules/custom/api_platform/src/Entity'];
+//    $bundlesResourcesPaths = ['modules/custom/api_platform/src/Entity'];
 //    $bundlesResourcesPaths = ['core/modules/taxonomy/src/Entity'];
 
     return $bundlesResourcesPaths;

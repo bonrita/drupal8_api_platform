@@ -67,4 +67,14 @@ interface ResourceClassResolverInterface
    */
   public function getBundleKey(string $resourceClass): string;
 
+  /**
+   * Get the entity class from the wrapper.
+   *
+   * @param string $resourceClass
+   *
+   * @return string|null
+   *   The entity class.
+   */
+  public function getActualResourceClass(string $resourceClass): ?string;
+
 }

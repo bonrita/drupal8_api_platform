@@ -4,6 +4,7 @@
 namespace Drupal\api_platform\Core\JsonLd\Serializer;
 
 
+use Drupal\api_platform\ApiEntity\ApiEntityInterface;
 use Drupal\api_platform\Core\Api\IriConverterInterface;
 use Drupal\api_platform\Core\Api\ResourceClassResolverInterface;
 use Drupal\api_platform\Core\JsonLd\ContextBuilderInterface;
@@ -139,7 +140,12 @@ final class ItemNormalizer extends AbstractItemNormalizer {
     }
 
     try {
-      $result = $this->decorated->denormalize($data, $type, $format, $context);
+      if (is_a($type, ApiEntityInterface::class, TRUE)) {
+        $actualEntityClass = $this->resourceClassResolver->getActualResourceClass($type);
+        $result = $this->decorated->denormalize($data, $actualEntityClass, $format, $context);
+      } else {
+        $result = $this->decorated->denormalize($data, $type, $format, $context);
+      }
     } catch (NoCorrespondingEntityClassException $e) {
       return $data;
     }

@@ -12,6 +12,7 @@
       <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
       <argument type="service" id="api_platform.operation_path_resolver.custom" />
       <argument type="service" id="service_container" />
+      <argument type="service" id="api_platform.resource_class_resolver"  />
       <argument>%api_platform.formats%</argument>
       <argument>%api_platform.resource_class_directories%</argument>
       <argument>%api_platform.enable_entrypoint%</argument>
@@ -25,9 +26,11 @@
       <argument type="service" id="entity_type.repository" />
       <argument type="service" id="entity_field.manager" />
       <argument type="service" id="plugin.manager.field.field_type" />
+      <argument type="service" id="api_platform.resource_class_resolver" />
 
       <tag name="property_info.list_extractor"/>
       <tag name="property_info.type_extractor" />
+      <tag name="property_info.access_extractor" />
     </service>
 
     <service id="api_platform.doctrine.orm.default.item_data_provider" class="Drupal\api_platform\Core\DataProvider\Drupal\ItemDataProvider">

@@ -6,6 +6,7 @@ namespace Drupal\api_platform\Core\DataProvider;
 namespace Drupal\api_platform\Core\Api;
 
 
+use Drupal\api_platform\Core\Exception\InvalidArgumentException;
 use Drupal\api_platform\Core\Exception\RuntimeException;
 use Drupal\api_platform\Core\Metadata\Extractor\EntityExtractor;
 use Drupal\api_platform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
@@ -19,7 +20,9 @@ final class IdentifiersExtractor implements IdentifiersExtractorInterface {
   use ResourceClassInfoTrait;
 
   private $propertyNameCollectionFactory;
+
   private $propertyMetadataFactory;
+
   private $propertyAccessor;
 
   /**
@@ -27,19 +30,37 @@ final class IdentifiersExtractor implements IdentifiersExtractorInterface {
    */
   private $entityExtractor;
 
-  public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, EntityExtractor $entityExtractor, PropertyAccessorInterface $propertyAccessor = null, ResourceClassResolverInterface $resourceClassResolver = null)
-  {
+  /**
+   * @var \Drupal\api_platform\Core\Api\ResourceEntityClassResolverInterface
+   */
+  private $resourceEntityClassResolver;
+
+  public function __construct(
+    PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory,
+    PropertyMetadataFactoryInterface $propertyMetadataFactory,
+    EntityExtractor $entityExtractor,
+    ResourceEntityClassResolverInterface $resourceEntityClassResolver,
+    PropertyAccessorInterface $propertyAccessor = NULL,
+    ResourceClassResolverInterface $resourceClassResolver = NULL
+  ) {
     $this->propertyNameCollectionFactory = $propertyNameCollectionFactory;
     $this->propertyMetadataFactory = $propertyMetadataFactory;
-    $this->propertyAccessor = $propertyAccessor ?? PropertyAccess::createPropertyAccessor();
+    $this->propertyAccessor = $propertyAccessor ?? PropertyAccess::createPropertyAccessor(
+      );
     $this->resourceClassResolver = $resourceClassResolver;
     $this->entityExtractor = $entityExtractor;
 
-    if (null === $this->resourceClassResolver) {
-      @trigger_error(sprintf('Not injecting %s in the IdentifiersExtractor might introduce cache issues with object identifiers.', ResourceClassResolverInterface::class), E_USER_DEPRECATED);
+    if (NULL === $this->resourceClassResolver) {
+      @trigger_error(
+        sprintf(
+          'Not injecting %s in the IdentifiersExtractor might introduce cache issues with object identifiers.',
+          ResourceClassResolverInterface::class
+        ),
+        E_USER_DEPRECATED
+      );
     }
+    $this->resourceEntityClassResolver = $resourceEntityClassResolver;
   }
-
 
   /**
    * @inheritDoc
@@ -60,7 +81,12 @@ final class IdentifiersExtractor implements IdentifiersExtractorInterface {
    */
   public function getIdentifiersFromItem($item): array {
     $identifiers = [];
-    $resourceClass = $this->getResourceClass($item, true);
+
+    try {
+      $resourceClass = $this->getResourceClass($item, TRUE);
+    } catch (InvalidArgumentException $e) {
+      $resourceClass = $this->resourceEntityClassResolver->getClassFromObject($item);
+    }
 
     if ($id = $this->entityExtractor->getIndentifier($resourceClass)) {
       $identifiers[] = $id;

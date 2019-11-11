@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace Drupal\api_platform\Core\Metadata\Extractor;
 
 
-use Drupal\api_platform\Core\Metadata\Property\Factory\PropertyMetadataFactoryInterface;
+use Drupal\api_platform\Core\Api\ResourceClassResolverInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
-use Drupal\Core\Entity\EntityTypeRepositoryInterface;
 use Drupal\Core\Entity\Exception\NoCorrespondingEntityClassException;
 
 class EntityExtractor {
@@ -18,19 +17,19 @@ class EntityExtractor {
   private $entityTypeManager;
 
   /**
-   * @var \Drupal\Core\Entity\EntityTypeRepositoryInterface
+   * @var \Drupal\api_platform\Core\Api\ResourceClassResolverInterface
    */
-  private $entityTypeRepository;
+  private $resourceClassResolver;
 
-  public function __construct(EntityTypeRepositoryInterface $entityTypeRepository, EntityTypeManagerInterface $entityTypeManager)
+  public function __construct(EntityTypeManagerInterface $entityTypeManager, ResourceClassResolverInterface $resourceClassResolver)
   {
-    $this->entityTypeRepository = $entityTypeRepository;
     $this->entityTypeManager = $entityTypeManager;
+    $this->resourceClassResolver = $resourceClassResolver;
   }
 
   public function getIndentifier(string $resourceClass): string {
     try {
-      $entityTypeID = $this->entityTypeRepository->getEntityTypeFromClass($resourceClass);
+      $entityTypeID = $this->resourceClassResolver->getEntityTypeId($resourceClass);
       $identifier = $this->entityTypeManager->getDefinition($entityTypeID)->getKey('id');
     } catch (NoCorrespondingEntityClassException $e) {
       $identifier = NULL;

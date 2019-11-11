@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Drupal\api_platform\Entity;
+namespace Drupal\api_platform\ApiEntity;
 
 
 use Drupal\api_platform\Core\Annotation\ApiEntity;
@@ -19,11 +19,13 @@ use Drupal\user\StatusItem;
 /**
  * Wraps the taxonomy term entity.
  *
- * @ApiResource()
+ * @ApiResource(
+ *   shortName="Boxer"
+ * )
  * @ApiEntity(
  *   entity_class = "Drupal\taxonomy\Entity\Term"
  * )
  */
-class Term {
+class Term implements ApiEntityInterface {
 
 }

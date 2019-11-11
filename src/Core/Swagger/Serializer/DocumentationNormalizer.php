@@ -132,6 +132,7 @@ final class DocumentationNormalizer implements NormalizerInterface {
     $links = new \ArrayObject();
 
     foreach ($object->getResourceNameCollection() as $resourceClass) {
+//      $resourceClass = $this->resourceClassResolver->getActualResourceClass($resourceClass);
       $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
       $resourceShortName = $resourceMetadata->getShortName();
 

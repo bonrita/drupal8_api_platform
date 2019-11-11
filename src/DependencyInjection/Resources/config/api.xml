@@ -27,6 +27,18 @@
       <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
     </service>
 
+    <service id="api_platform.entity_metadata_helper" class="Drupal\api_platform\Core\Api\EntityMetadataHelper" public="false">
+      <argument type="service" id="entity_type.repository" />
+      <argument type="service" id="entity_type.bundle.info" />
+      <argument type="service" id="entity_type.manager" />
+      <argument type="service" id="api_platform.resource_class_resolver" />
+    </service>
+
+    <service id="api_platform.resource_entity_class_resolver" class="Drupal\api_platform\Core\Api\ResourceEntityClassResolver" public="false">
+      <argument type="service" id="annotation_reader" />
+      <argument>%api_platform.resource_class_directories%</argument>
+    </service>
+
     <service id="api_platform.formats_provider" class="Drupal\api_platform\Core\Api\FormatsProvider">
       <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
       <argument>%api_platform.formats%</argument>
@@ -77,6 +89,7 @@
       <argument type="service" id="api_platform.subresource_data_provider" on-invalid="ignore" />
       <argument type="service" id="api_platform.identifier.converter" on-invalid="ignore" />
       <argument type="service" id="api_platform.resource_class_resolver" />
+      <argument type="service" id="api_platform.resource_entity_class_resolver" />
     </service>
 
     <!-- Resources Operations path resolver -->
@@ -153,6 +166,7 @@
       <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
       <argument type="service" id="api_platform.metadata.property.metadata_factory" />
       <argument type="service" id="api_platform.entity_extractor" />
+      <argument type="service" id="api_platform.resource_entity_class_resolver" />
       <argument type="service" id="api_platform.property_accessor" />
       <argument type="service" id="api_platform.resource_class_resolver" />
     </service>

@@ -15,12 +15,9 @@
         </service>
 
       <service id="api_platform.entity_extractor" class="Drupal\api_platform\Core\Metadata\Extractor\EntityExtractor">
-            <argument type="service" id="entity_type.repository" />
             <argument type="service" id="entity_type.manager" />
+            <argument type="service" id="api_platform.resource_class_resolver" />
       </service>
-
-
-
 
     </services>
 </container>

@@ -6,6 +6,7 @@ namespace Drupal\api_platform\Core\Routing;
 
 
 use Drupal\api_platform\Core\Api\OperationType;
+use Drupal\api_platform\Core\Api\ResourceEntityClassResolverInterface;
 use Drupal\api_platform\Core\Util\ResourceClassInfoTrait;
 use Drupal\api_platform\Core\Api\IdentifiersExtractor;
 use Drupal\api_platform\Core\Api\IdentifiersExtractorInterface;
@@ -31,12 +32,36 @@ final class IriConverter implements IriConverterInterface {
   use ResourceClassInfoTrait;
 
   private $routeNameResolver;
+
   private $router;
+
   private $identifiersExtractor;
 
   //  IdentifiersExtractorInterface $identifiersExtractor = null,
-  public function __construct(PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory, PropertyMetadataFactoryInterface $propertyMetadataFactory, ItemDataProviderInterface $itemDataProvider, RouteNameResolverInterface $routeNameResolver, RouterInterface $router, PropertyAccessorInterface $propertyAccessor = null, IdentifiersExtractorInterface $identifiersExtractor = null, SubresourceDataProviderInterface $subresourceDataProvider = null, IdentifierConverterInterface $identifierConverter = null, ResourceClassResolverInterface $resourceClassResolver = null)
-  {
+
+  /**
+   * @var \Drupal\api_platform\Core\Metadata\Property\Factory\PropertyNameCollectionFactoryInterface
+   */
+  private $propertyNameCollectionFactory;
+
+  /**
+   * @var \Drupal\api_platform\Core\Api\ResourceEntityClassResolverInterface
+   */
+  private $resourceEntityClassResolver;
+
+  public function __construct(
+    PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory,
+    PropertyMetadataFactoryInterface $propertyMetadataFactory,
+    ItemDataProviderInterface $itemDataProvider,
+    RouteNameResolverInterface $routeNameResolver,
+    RouterInterface $router,
+    PropertyAccessorInterface $propertyAccessor = NULL,
+    IdentifiersExtractorInterface $identifiersExtractor = NULL,
+    SubresourceDataProviderInterface $subresourceDataProvider = NULL,
+    IdentifierConverterInterface $identifierConverter = NULL,
+    ResourceClassResolverInterface $resourceClassResolver = NULL,
+    ResourceEntityClassResolverInterface $resourceEntityClassResolver = NULL
+  ) {
     $this->itemDataProvider = $itemDataProvider;
     $this->routeNameResolver = $routeNameResolver;
     $this->router = $router;
@@ -45,10 +70,12 @@ final class IriConverter implements IriConverterInterface {
     $this->identifierConverter = $identifierConverter;
     $this->resourceClassResolver = $resourceClassResolver;
 
-//    if (null === $identifiersExtractor) {
-//      @trigger_error(sprintf('Not injecting "%s" is deprecated since API Platform 2.1 and will not be possible anymore in API Platform 3', IdentifiersExtractorInterface::class), E_USER_DEPRECATED);
-//      $this->identifiersExtractor = new IdentifiersExtractor($propertyNameCollectionFactory, $propertyMetadataFactory, $propertyAccessor ?? PropertyAccess::createPropertyAccessor());
-//    }
+    //    if (null === $identifiersExtractor) {
+    //      @trigger_error(sprintf('Not injecting "%s" is deprecated since API Platform 2.1 and will not be possible anymore in API Platform 3', IdentifiersExtractorInterface::class), E_USER_DEPRECATED);
+    //      $this->identifiersExtractor = new IdentifiersExtractor($propertyNameCollectionFactory, $propertyMetadataFactory, $propertyAccessor ?? PropertyAccess::createPropertyAccessor());
+    //    }
+    $this->propertyNameCollectionFactory = $propertyNameCollectionFactory;
+    $this->resourceEntityClassResolver = $resourceEntityClassResolver;
   }
 
 
@@ -66,23 +93,43 @@ final class IriConverter implements IriConverterInterface {
     $item,
     int $referenceType = UrlGeneratorInterface::ABS_PATH
   ): string {
-    $resourceClass = $this->getResourceClass($item);
-    $routeName = $this->routeNameResolver->getRouteName($resourceClass, OperationType::ITEM);
 
     try {
-      $identifiers = $this->generateIdentifiersUrl($this->identifiersExtractor->getIdentifiersFromItem($item), $resourceClass);
+      $resourceClass = $this->getResourceClass($item, TRUE);
+    } catch (InvalidArgumentException $e) {
+      $resourceClass = $this->resourceEntityClassResolver->getClassFromObject($item);
+    }
+
+    $routeName = $this->routeNameResolver->getRouteName(
+      $resourceClass,
+      OperationType::ITEM
+    );
+
+    try {
+      $identifiers = $this->generateIdentifiersUrl(
+        $this->identifiersExtractor->getIdentifiersFromItem($item),
+        $resourceClass
+      );
       $idKey = $this->resourceClassResolver->getIdKey($resourceClass);
-      return $this->router->generate($routeName, [$idKey => implode(';', $identifiers)], $referenceType);
+      return $this->router->generate(
+        $routeName,
+        [$idKey => implode(';', $identifiers)],
+        $referenceType
+      );
     } catch (RuntimeException $e) {
-      throw new InvalidArgumentException(sprintf(
-        'Unable to generate an IRI for the item of type "%s"',
-        $resourceClass
-      ), $e->getCode(), $e);
-    }  catch (RoutingExceptionInterface $e) {
-      throw new InvalidArgumentException(sprintf(
-        'Unable to generate an IRI for the item of type "%s"',
-        $resourceClass
-      ), $e->getCode(), $e);
+      throw new InvalidArgumentException(
+        sprintf(
+          'Unable to generate an IRI for the item of type "%s"',
+          $resourceClass
+        ), $e->getCode(), $e
+      );
+    } catch (RoutingExceptionInterface $e) {
+      throw new InvalidArgumentException(
+        sprintf(
+          'Unable to generate an IRI for the item of type "%s"',
+          $resourceClass
+        ), $e->getCode(), $e
+      );
     }
 
   }
@@ -122,18 +169,22 @@ final class IriConverter implements IriConverterInterface {
   /**
    * Generate the identifier url.
    *
+   * @return string[]
    * @throws InvalidArgumentException
    *
-   * @return string[]
    */
-  private function generateIdentifiersUrl(array $identifiers, string $resourceClass): array
-  {
+  private function generateIdentifiersUrl(
+    array $identifiers,
+    string $resourceClass
+  ): array {
 
     if (0 === \count($identifiers)) {
-      throw new \InvalidArgumentException(sprintf(
-        'No identifiers defined for resource of type "%s"',
-        $resourceClass
-      ));
+      throw new \InvalidArgumentException(
+        sprintf(
+          'No identifiers defined for resource of type "%s"',
+          $resourceClass
+        )
+      );
     }
 
     if (1 === \count($identifiers)) {

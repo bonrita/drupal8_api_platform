@@ -8,6 +8,7 @@ use Drupal\api_platform\Core\Metadata\Resource\Factory\ResourceMetadataFactoryIn
 use Drupal\api_platform\Core\Metadata\Resource\Factory\ResourceNameCollectionFactoryInterface;
 use Drupal\api_platform\Core\Api\ResourceClassResolverInterface;
 use Drupal\api_platform\Core\Exception\InvalidArgumentException;
+use Drupal\Core\Entity\ContentEntityInterface;
 use Drupal\Core\Entity\EntityTypeBundleInfoInterface;
 use Drupal\Core\Entity\EntityTypeManagerInterface;
 use Drupal\Core\Entity\EntityTypeRepositoryInterface;
@@ -44,6 +45,7 @@ class ResourceClassResolver implements ResourceClassResolverInterface {
    */
   private $resourceMetadataFactory;
 
+
   public function __construct(
     ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory,
     EntityTypeRepositoryInterface $entityTypeRepository,
@@ -57,6 +59,7 @@ class ResourceClassResolver implements ResourceClassResolverInterface {
     $this->entityTypeBundleInfo = $entityTypeBundleInfo;
     $this->entityTypeManager = $entityTypeManager;
     $this->resourceMetadataFactory = $resourceMetadataFactory;
+
   }
 
   /**
@@ -147,14 +150,28 @@ class ResourceClassResolver implements ResourceClassResolverInterface {
    * {@inheritDoc}
    */
   public function getEntityTypeId(string $resourceClass): string {
-
    try{
      $entityTypeId = $this->entityTypeRepository->getEntityTypeFromClass($resourceClass);
    } catch (NoCorrespondingEntityClassException $e) {
-     $tt =  $this->resourceMetadataFactory->create($resourceClass);
-     $entityTypeId = NULL;
+     $wrappedClass = $this->getActualResourceClass($resourceClass);
+     $entityTypeId = $this->entityTypeRepository->getEntityTypeFromClass($wrappedClass);
    }
     return $entityTypeId;
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  public function getActualResourceClass(string $resourceClass): ?string {
+    $class = NULL;
+    $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
+    $drupalAttribs = $resourceMetadata->getAttribute('drupal_attribs');
+
+    if ($drupalAttribs && isset($drupalAttribs[$resourceClass])) {
+      $class = $drupalAttribs[$resourceClass]['class'];
+    }
+
+    return $class?: $resourceClass;
   }
 
   /**
@@ -166,10 +183,23 @@ class ResourceClassResolver implements ResourceClassResolverInterface {
     return $definition->getKey('bundle');
   }
 
-  public function getFieldMainProperty(string $fieldName, string $entityTypeId) {
-    // Get the base field definitions for this entity type.
-    $base_field_definitions = $this->getEntityFieldManager()->getBaseFieldDefinitions($entity_type_definition->id());
+  /**
+   * Derive api resource class from entity.
+   *
+   * @param \Drupal\Core\Entity\ContentEntityInterface $entity
+   *   The entity instance.
+   *
+   * @return string|null
+   *   The api resource class.
+   */
+  public function deriveApiResourceClassFromEntity(ContentEntityInterface $entity): ?string {
+    $this->resourceEntityClassResolver->getClassFromObject($entity);
   }
+
+//  public function getFieldMainProperty(string $fieldName, string $entityTypeId) {
+//    // Get the base field definitions for this entity type.
+//    $base_field_definitions = $this->getEntityFieldManager()->getBaseFieldDefinitions($entity_type_definition->id());
+//  }
 
   /**
    * Gets the entity type definition.

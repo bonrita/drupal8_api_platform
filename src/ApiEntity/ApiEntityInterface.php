@@ -1,7 +1,7 @@
 <?php
 
 
-namespace Drupal\api_platform\Entity;
+namespace Drupal\api_platform\ApiEntity;
 
 
 interface ApiEntityInterface {
