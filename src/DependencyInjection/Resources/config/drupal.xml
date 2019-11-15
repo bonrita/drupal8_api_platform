@@ -40,6 +40,13 @@
       <tag name="api_platform.item_data_provider" />
     </service>
 
+    <service id="api_platform.doctrine.orm.default.collection_data_provider" class="Drupal\api_platform\Core\DataProvider\Drupal\CollectionDataProvider">
+      <argument type="service" id="api_platform.resource_class_resolver" />
+      <argument type="service" id="entity_type.manager" />
+
+      <tag name="api_platform.collection_data_provider" />
+    </service>
+
     <!--    Path processors-->
 <!--    <service id="api_platform.path_processor" class="Drupal\api_platform\PathProcessor\PathProcessor">-->
 <!--      <tag name="path_processor_outbound" priority="400"/>-->

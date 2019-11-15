@@ -162,7 +162,6 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
         }
       }
 
-      $gg = 0;
     }
 
     $routeCollection->addCollection($collection);

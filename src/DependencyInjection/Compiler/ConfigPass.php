@@ -184,7 +184,7 @@ class ConfigPass implements CompilerPassInterface {
   }
 
   private function getResourcesToWatch(ContainerBuilder $container, array $config) {
-    $paths = array_unique(array_merge($config['mapping']['paths'], $this->getBundlesResourcesPaths($container, $config)));
+    $paths = array_unique(array_merge($config['mapping']['paths'], $this->getModulesResourcesPaths($container, $config)));
 
     $resources = ['yml' => [], 'xml' => [], 'dir' => []];
 
@@ -202,7 +202,7 @@ class ConfigPass implements CompilerPassInterface {
     return [$resources['xml'], $resources['yml']];
   }
 
-  private function getBundlesResourcesPaths(ContainerBuilder $container, array $config) {
+  private function getModulesResourcesPaths(ContainerBuilder $container, array $config) {
     $bundlesResourcesPaths = [];
 
     foreach ($container->getParameter('container.namespaces') as $dirname) {

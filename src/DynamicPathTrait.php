@@ -10,7 +10,7 @@ trait DynamicPathTrait {
 
   private $pathEnd;
 
-  protected function isDynamicApiPath(Request $request) {
+  protected function isDynamicApiPath(Request $request): bool {
     $path = $request->getPathInfo();
 
     $parts = explode('/', $path);

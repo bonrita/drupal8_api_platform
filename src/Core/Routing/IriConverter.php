@@ -141,7 +141,11 @@ final class IriConverter implements IriConverterInterface {
     string $resourceClass,
     int $referenceType = UrlGeneratorInterface::ABS_PATH
   ): string {
-    // TODO: Implement getIriFromResourceClass() method.
+    try {
+      return $this->router->generate($this->routeNameResolver->getRouteName($resourceClass, OperationType::COLLECTION), [], $referenceType);
+    } catch (RoutingExceptionInterface $e) {
+      throw new InvalidArgumentException(sprintf('Unable to generate an IRI for "%s".', $resourceClass), $e->getCode(), $e);
+    }
   }
 
   /**

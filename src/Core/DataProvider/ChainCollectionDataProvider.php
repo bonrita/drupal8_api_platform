@@ -25,7 +25,7 @@ final class ChainCollectionDataProvider implements ContextAwareCollectionDataPro
 //     * @param CollectionDataProviderInterface[] $dataProviders
 //     */
 //    public function __construct(iterable $dataProviders)
-//    {
+//    {FilterInterface
 //        $this->dataProviders = $dataProviders;
 //    }
 

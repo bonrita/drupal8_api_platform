@@ -98,11 +98,7 @@ final class ItemNormalizer extends AbstractItemNormalizer {
    * {@inheritdoc}
    */
   public function supportsNormalization($data, $format = NULL): bool {
-    return $this->decorated->supportsNormalization($data, $format);
-    return self::FORMAT === $format && parent::supportsNormalization(
-        $data,
-        $format
-      );
+    return self::FORMAT === $format && $this->decorated->supportsNormalization($data, $format);
   }
 
   public function denormalize(

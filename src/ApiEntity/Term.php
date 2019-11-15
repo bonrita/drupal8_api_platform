@@ -20,7 +20,12 @@ use Drupal\user\StatusItem;
  * Wraps the taxonomy term entity.
  *
  * @ApiResource(
- *   shortName="Boxer"
+ *   shortName="Boxer",
+ *   itemOperations={
+ *   "get"={"path"="/categories/{tid}"},
+ *   "put",
+ *   "delete"
+ *   }
  * )
  * @ApiEntity(
  *   entity_class = "Drupal\taxonomy\Entity\Term"

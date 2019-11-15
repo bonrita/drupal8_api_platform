@@ -14,6 +14,7 @@ services:
 
   api_platform.path_processor:
     class: Drupal\api_platform\PathProcessor\PathProcessor
+    arguments: ['%api_platform.formats%', '@api_platform.path_properties']
     tags:
       - { name: path_processor_outbound }
       - { name: path_processor_inbound }
@@ -26,9 +27,12 @@ services:
 
   api_platform.route_enhancer:
     class: Drupal\api_platform\Routing\Enhancer\DynamicRouteEnhancer
-    arguments: ['@api_platform.formats_provider']
+    arguments: ['@api_platform.formats_provider', '@api_platform.path_properties']
     tags:
       - { name: route_enhancer }
+
+  api_platform.path_properties:
+    class: Drupal\api_platform\Routing\PathProperties
 
 #  api_platform.filter_locator:
 #    class: Symfony\Component\DependencyInjection\ServiceLocator

@@ -14,6 +14,15 @@
             <tag name="normalizer" priority="-800" />
         </service>
 
+      <service id="api_platform.hydra.normalizer.collection" class="Drupal\api_platform\Core\Hydra\Serializer\CollectionNormalizer" public="false">
+        <argument type="service" id="api_platform.jsonld.context_builder" />
+        <argument type="service" id="api_platform.resource_class_resolver" />
+        <argument type="service" id="api_platform.iri_converter" />
+<!--        <argument type="service" id="api_platform.serializer" />-->
+
+        <tag name="normalizer" priority="-790" />
+      </service>
+
       <service id="api_platform.hydra.normalizer.error" class="Drupal\api_platform\Core\Hydra\Serializer\ErrorNormalizer" public="false">
         <argument type="service" id="api_platform.router" />
 <!--        <argument>%kernel.debug%</argument>-->

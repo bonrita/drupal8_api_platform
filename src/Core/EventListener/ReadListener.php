@@ -75,6 +75,12 @@ class ReadListener implements EventSubscriberInterface {
   public function onKernelRequest(GetResponseEvent $event): void
   {
     $request = $event->getRequest();
+
+    $tt = !($attributes = RequestAttributesExtractor::extractAttributes($request));
+    $yy = $request->isMethod('POST') && isset($attributes['collection_operation_name']);
+    $qq = $this->isOperationAttributeDisabled($attributes, self::OPERATION_ATTRIBUTE_KEY);
+    $gg =0;
+
     if (
       !($attributes = RequestAttributesExtractor::extractAttributes($request))
       || !$attributes['receive']
@@ -94,6 +100,12 @@ class ReadListener implements EventSubscriberInterface {
       // Builtin data providers are able to use the serialization context to automatically add join clauses
       $context += $normalizationContext = $this->serializerContextBuilder->createFromRequest($request, true, $attributes);
       $request->attributes->set('_api_normalization_context', $normalizationContext);
+    }
+
+    if (isset($attributes['collection_operation_name'])) {
+      $request->attributes->set('data', $this->getCollectionData($attributes, $context));
+
+      return;
     }
 
     $data = [];

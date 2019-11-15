@@ -76,4 +76,15 @@ trait OperationDataProviderTrait
   {
     return $this->itemDataProvider->getItem($attributes['resource_class'], $identifiers, $attributes['item_operation_name'], $context);
   }
+
+  /**
+   * Retrieves data for a collection operation.
+   *
+   * @return iterable|null
+   */
+  private function getCollectionData(array $attributes, array $context)
+  {
+    return $this->collectionDataProvider->getCollection($attributes['resource_class'], $attributes['collection_operation_name'], $context);
+  }
+
 }

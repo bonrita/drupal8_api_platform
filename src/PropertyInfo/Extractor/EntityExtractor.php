@@ -143,6 +143,9 @@ class EntityExtractor implements PropertyListExtractorInterface, PropertyTypeExt
    * @inheritDoc
    */
   public function isWritable($class, $property, array $context = []) {
+    if($this->resourceClassResolver->getIdKey($class) === $property) {
+      return FALSE;
+    }
     return TRUE;
   }
 
