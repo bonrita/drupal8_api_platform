@@ -33,6 +33,8 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
 
   public const DEFAULT_ACTION_PATTERN = 'api_platform.action.';
 
+  public const DEFAULT_ROUTE_BUNDLE_KEY = '_entity_bundle';
+
   /**
    * @var \Symfony\Component\Routing\Loader\XmlFileLoader
    */
@@ -149,31 +151,48 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
         );
       }
 
+      $bundles =  $this->getEntityBundles($resourceClass);
+
       // Add routes.
       if (NULL !== $collectionOperations = $resourceMetadata->getCollectionOperations(
         )) {
         foreach ($collectionOperations as $operationName => $operation) {
-          $this->addRoute(
-            $routeCollection,
-            $resourceClass,
-            $operationName,
-            $operation,
-            $resourceMetadata,
-            OperationType::COLLECTION
-          );
+
+          if ('post' === $operationName && !empty($bundles)) {
+            foreach ($bundles as $bundle) {
+              $this->addRoute(
+                $routeCollection,
+                $resourceClass,
+                $operationName,
+                $operation,
+                $resourceMetadata,
+                OperationType::COLLECTION,
+                $bundle
+              );
+            }
+          } else {
+            $this->addRoute(
+              $routeCollection,
+              $resourceClass,
+              $operationName,
+              $operation,
+              $resourceMetadata,
+              OperationType::COLLECTION
+            );
+          }
         }
       }
 
       if (NULL !== $itemOperations = $resourceMetadata->getItemOperations()) {
         foreach ($itemOperations as $operationName => $operation) {
-          $this->addRoute(
-            $routeCollection,
-            $resourceClass,
-            $operationName,
-            $operation,
-            $resourceMetadata,
-            OperationType::ITEM
-          );
+            $this->addRoute(
+              $routeCollection,
+              $resourceClass,
+              $operationName,
+              $operation,
+              $resourceMetadata,
+              OperationType::ITEM
+            );
         }
       }
 
@@ -226,7 +245,8 @@ $gg =0;
     string $operationName,
     array $operation,
     ResourceMetadata $resourceMetadata,
-    string $operationType
+    string $operationType,
+    string $entityBundle = NULL
   ): void {
     $resourceShortName = $resourceMetadata->getShortName();
 
@@ -272,10 +292,14 @@ $gg =0;
       $operation,
       $operationType,
       $resourceClass,
-      $operationName
+      $operationName,
+      $entityBundle
     );
 
-    // @todo Add bundle name to path.
+    // Add entity bundle name to route as a default parameter.
+    if (!empty($entityBundle)) {
+      $operation['defaults'][self::DEFAULT_ROUTE_BUNDLE_KEY] = $entityBundle;
+    }
 
     $route = new Route(
       $path,
@@ -297,7 +321,8 @@ $gg =0;
       RouteNameGenerator::generate(
         $operationName,
         $resourceShortName,
-        $operationType
+        $operationType,
+        $entityBundle
       ),
       $route
     );
@@ -309,6 +334,21 @@ $gg =0;
   public static function getSubscribedEvents() {
     $events[RoutingEvents::DYNAMIC][] = ['onDynamicRouteEvent'];
     return $events;
+  }
+
+  /**
+   * @param $resourceClass
+   *
+   * @return array
+   */
+  private function getEntityBundles($resourceClass): array {
+    $resourceClass = $this->resourceClassResolver->getActualResourceClass($resourceClass);
+    if (!$this->resourceClassResolver->isEntityTypeClass($resourceClass)) {
+      return [];
+    }
+
+    $bundles = $this->resourceClassResolver->getBundles($resourceClass);
+    return empty($bundles) ? [] : array_keys($bundles);
   }
 
 }

@@ -22,26 +22,41 @@ final class RouteNameGenerator
     {
     }
 
-    /**
-     * Generates a Symfony route name.
-     *
-     * @param string|bool $operationType
-     *
-     * @throws InvalidArgumentException
-     */
-    public static function generate(string $operationName, string $resourceShortName, $operationType): string
+  /**
+   * Generates a Symfony route name.
+   *
+   * @param string $operationName
+   * @param string $resourceShortName
+   * @param string|bool $operationType
+   *
+   * @param string|null $entityBundle
+   *
+   * @return string
+   */
+    public static function generate(string $operationName, string $resourceShortName, $operationType, string $entityBundle = NULL): string
     {
         if (OperationType::SUBRESOURCE === $operationType = OperationTypeDeprecationHelper::getOperationType($operationType)) {
             throw new InvalidArgumentException('Subresource operations are not supported by the RouteNameGenerator.');
         }
 
-        $name = sprintf(
-          '%s%s_%s_%s',
-          static::ROUTE_NAME_PREFIX,
-          self::inflector($resourceShortName),
-          $operationName,
-          $operationType
-        );
+        if (!empty($entityBundle)) {
+          $name = sprintf(
+            '%s%s_%s_%s_%s',
+            static::ROUTE_NAME_PREFIX,
+            self::inflector($resourceShortName),
+            $operationName,
+            $operationType,
+            $entityBundle
+          );
+        } else {
+          $name = sprintf(
+            '%s%s_%s_%s',
+            static::ROUTE_NAME_PREFIX,
+            self::inflector($resourceShortName),
+            $operationName,
+            $operationType
+          );
+        }
 
         return $name;
     }

@@ -26,7 +26,7 @@ final class CustomOperationPathResolver implements OperationPathResolverInterfac
   /**
    * {@inheritdoc}
    */
-  public function resolveOperationPath(string $resourceShortName, array $operation, $operationType, string $resourceClass, string $operationName = null): string {
+  public function resolveOperationPath(string $resourceShortName, array $operation, $operationType, string $resourceClass, string $operationName = null, string $entityBundle = NULL): string {
 //    if (\func_num_args() >= 4) {
 //      $operationName = func_get_arg(3);
 //    } else {
@@ -35,7 +35,7 @@ final class CustomOperationPathResolver implements OperationPathResolverInterfac
 //      $operationName = null;
 //    }
 
-    return $operation['path'] ?? $this->deferred->resolveOperationPath($resourceShortName, $operation, OperationTypeDeprecationHelper::getOperationType($operationType), $resourceClass, $operationName);
+    return $operation['path'] ?? $this->deferred->resolveOperationPath($resourceShortName, $operation, OperationTypeDeprecationHelper::getOperationType($operationType), $resourceClass, $operationName, $entityBundle);
   }
 
 }

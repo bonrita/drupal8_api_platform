@@ -36,7 +36,7 @@ final class OperationPathResolver implements OperationPathResolverInterface {
   /**
    * @inheritDoc
    */
-  public function resolveOperationPath(string $resourceShortName, array $operation, $operationType, string $resourceClass, string $operationName = null): string {
+  public function resolveOperationPath(string $resourceShortName, array $operation, $operationType, string $resourceClass, string $operationName = null, string $entityBundle = NULL): string {
     if (\func_num_args() < 4) {
       @trigger_error(sprintf('Method %s() will have a 4th `string $operationName` argument in version 3.0. Not defining it is deprecated since 2.1.', __METHOD__), E_USER_DEPRECATED);
     }
@@ -48,6 +48,10 @@ final class OperationPathResolver implements OperationPathResolverInterface {
     }
 
     $path = '/'.$this->pathSegmentNameGenerator->getSegmentName($resourceShortName);
+
+    if (!empty($entityBundle)) {
+      $path .= "/{$entityBundle}";
+    }
 
     if (OperationType::ITEM === $operationType) {
       $idKey = $this->resourceClassResolver->getIdKey($resourceClass);

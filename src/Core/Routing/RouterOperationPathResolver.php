@@ -38,7 +38,8 @@ final class RouterOperationPathResolver implements OperationPathResolverInterfac
     array $operation,
     $operationType,
     string $resourceClass,
-    string $operationName = null
+    string $operationName = null,
+    string $entityBundle = NULL
   ): string {
 //    if (\func_num_args() >= 4) {
 //      $operationName = (string) func_get_arg(3);
@@ -53,9 +54,9 @@ final class RouterOperationPathResolver implements OperationPathResolverInterfac
     } elseif (OperationType::SUBRESOURCE === $operationType) {
       throw new InvalidArgumentException('Subresource operations are not supported by the RouterOperationPathResolver without a route name.');
     } elseif (null === $operationName) {
-      return $this->deferred->resolveOperationPath($resourceShortName, $operation, OperationTypeDeprecationHelper::getOperationType($operationType), $operationName);
+      return $this->deferred->resolveOperationPath($resourceShortName, $operation, OperationTypeDeprecationHelper::getOperationType($operationType), $operationName, $entityBundle);
     } else {
-      $routeName = RouteNameGenerator::generate($operationName, $resourceShortName, $operationType);
+      $routeName = RouteNameGenerator::generate($operationName, $resourceShortName, $operationType, $entityBundle);
     }
 
     if (!$route = $this->router->getRouteCollection()->get($routeName)) {

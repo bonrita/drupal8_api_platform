@@ -193,17 +193,30 @@ final class DocumentationNormalizer implements NormalizerInterface {
     }
 
     $context = [];
-    $bundles = array_keys($this->resourceClassResolver->getBundles($resourceClass));
+    $bundles = $this->resourceClassResolver->getBundles($resourceClass);
+    $bundles = empty($bundles) ? [] : array_keys($bundles);
     $bundleKey = $this->resourceClassResolver->getBundleKey($resourceClass);
 
     foreach ($operations as $operationName => $operation) {
-      $path = $this->getPath($resourceShortName, $operationName, $operation, $operationType, $resourceClass);
       $method = OperationType::ITEM === $operationType ? $this->operationMethodResolver->getItemOperationMethod($resourceClass, $operationName) : $this->operationMethodResolver->getCollectionOperationMethod($resourceClass, $operationName);
 
-      foreach ($bundles as $bundle) {
-        $context['bundle'] = $bundle;
-        $paths[$path."?{$bundleKey}=".$bundle][strtolower($method)] = $this->getPathOperation($v3, $operationName, $operation, $method, $operationType, $resourceClass, $resourceMetadata, $mimeTypes, $definitions, $links, $context);
+      if('collection' === $operationType && 'post' === $operationName && !empty($bundles)) {
+        foreach ($bundles as $bundle) {
+          $context['bundle'] = $bundle;
+          $path = $this->getPath($resourceShortName, $operationName, $operation, $operationType, $resourceClass, $bundle);
+          $paths[$path][strtolower($method)] = $this->getPathOperation($v3, $operationName, $operation, $method, $operationType, $resourceClass, $resourceMetadata, $mimeTypes, $definitions, $links, $context);
+        }
+      } else {
+        $path = $this->getPath($resourceShortName, $operationName, $operation, $operationType, $resourceClass);
+        $paths[$path][strtolower($method)] = $this->getPathOperation($v3, $operationName, $operation, $method, $operationType, $resourceClass, $resourceMetadata, $mimeTypes, $definitions, $links);
       }
+
+//      foreach ($bundles as $bundle) {
+//        $context['bundle'] = $bundle;
+//        $path = $this->getPath($resourceShortName, $operationName, $operation, $operationType, $resourceClass, $bundle);
+////        $paths[$path."?{$bundleKey}=".$bundle][strtolower($method)] = $this->getPathOperation($v3, $operationName, $operation, $method, $operationType, $resourceClass, $resourceMetadata, $mimeTypes, $definitions, $links, $context);
+//        $paths[$path][strtolower($method)] = $this->getPathOperation($v3, $operationName, $operation, $method, $operationType, $resourceClass, $resourceMetadata, $mimeTypes, $definitions, $links, $context);
+//      }
 
     }
 
@@ -216,10 +229,19 @@ final class DocumentationNormalizer implements NormalizerInterface {
    * as optional path parameters are not yet supported.
    *
    * @see https://github.com/OAI/OpenAPI-Specification/issues/93
+   *
+   * @param string $resourceShortName
+   * @param string $operationName
+   * @param array $operation
+   * @param string $operationType
+   * @param string $resourceClass
+   * @param string|null $entityBundle
+   *
+   * @return string
    */
-  private function getPath(string $resourceShortName, string $operationName, array $operation, string $operationType, string $resourceClass): string
+  private function getPath(string $resourceShortName, string $operationName, array $operation, string $operationType, string $resourceClass, string $entityBundle = NULL): string
   {
-    $path = $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $resourceClass, $operationName);
+    $path = $this->operationPathResolver->resolveOperationPath($resourceShortName, $operation, $operationType, $resourceClass, $operationName, $entityBundle);
     if ('.{_format}' === substr($path, -10)) {
       $path = substr($path, 0, -10);
     }
@@ -232,20 +254,33 @@ final class DocumentationNormalizer implements NormalizerInterface {
    *
    * @see https://github.com/OAI/OpenAPI-Specification/blob/master/versions/2.0.md#operation-object
    *
+   * @param bool $v3
+   * @param string $operationName
+   * @param array $operation
+   * @param string $method
+   * @param string $operationType
+   * @param string $resourceClass
+   * @param \Drupal\api_platform\Core\Metadata\Resource\ResourceMetadata $resourceMetadata
    * @param string[] $mimeTypes
+   * @param \ArrayObject $definitions
+   * @param \ArrayObject $links
+   * @param array $context
+   *
+   * @return \ArrayObject
    */
-  private function getPathOperation(bool $v3, string $operationName, array $operation, string $method, string $operationType, string $resourceClass, ResourceMetadata $resourceMetadata, array $mimeTypes, \ArrayObject $definitions, \ArrayObject $links, array $context): \ArrayObject
+  private function getPathOperation(bool $v3, string $operationName, array $operation, string $method, string $operationType, string $resourceClass, ResourceMetadata $resourceMetadata, array $mimeTypes, \ArrayObject $definitions, \ArrayObject $links, array $context = []): \ArrayObject
   {
     $pathOperation = new \ArrayObject($operation[$v3 ? 'openapi_context' : 'swagger_context'] ?? []);
     $resourceShortName = $resourceMetadata->getShortName();
     $pathOperation['tags'] ?? $pathOperation['tags'] = [$resourceShortName];
     $pathOperation['operationId'] ?? $pathOperation['operationId'] = lcfirst($operationName).ucfirst($resourceShortName).ucfirst($operationType);
-
+    $entityBundle = NULL;
     if (isset($context['bundle']) && !empty($context['bundle'])) {
       $pathOperation['operationId'] = $pathOperation['operationId'].ucfirst($context['bundle']);
+      $entityBundle = $context['bundle'];
     }
 
-    if ($v3 && 'GET' === $method && OperationType::ITEM === $operationType && $link = $this->getLinkObject($resourceClass, $pathOperation['operationId'], $this->getPath($resourceShortName, $operationName, $operation, $operationType))) {
+    if ($v3 && 'GET' === $method && OperationType::ITEM === $operationType && $link = $this->getLinkObject($resourceClass, $pathOperation['operationId'], $this->getPath($resourceShortName, $operationName, $operation, $operationType, $resourceClass, $entityBundle))) {
       $links[$pathOperation['operationId']] = $link;
     }
     if ($resourceMetadata->getTypedOperationAttribute($operationType, $operationName, 'deprecation_reason', null, true)) {

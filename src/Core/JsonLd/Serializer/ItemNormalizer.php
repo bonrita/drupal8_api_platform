@@ -15,10 +15,12 @@ use Drupal\api_platform\Core\Serializer\AbstractItemNormalizer;
 use Drupal\api_platform\Core\Serializer\ContextTrait;
 use Drupal\api_platform\Core\Util\ClassInfoTrait;
 use Drupal\api_platform\PropertyInfo\Extractor\EntityExtractor;
+use Drupal\api_platform\Routing\RouteProviderSubscriber;
 use Drupal\Core\DependencyInjection\ClassResolverInterface;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Exception\NoCorrespondingEntityClassException;
+use Drupal\Core\Routing\RouteMatchInterface;
 use Drupal\field\FieldConfigInterface;
 use Drupal\serialization\Normalizer\ContentEntityNormalizer;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -61,6 +63,11 @@ final class ItemNormalizer extends AbstractItemNormalizer {
    */
   private $classResolver;
 
+  /**
+   * @var \Drupal\Core\Routing\RouteMatchInterface
+   */
+  private $routeMatch;
+
   public function __construct(
     ResourceMetadataFactoryInterface $resourceMetadataFactory,
     PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory,
@@ -76,7 +83,8 @@ final class ItemNormalizer extends AbstractItemNormalizer {
     ClassMetadataFactoryInterface $classMetadataFactory = NULL,
     array $defaultContext = [],
     iterable $dataTransformers = [],
-    ClassResolverInterface $classResolver = NULL
+    ClassResolverInterface $classResolver = NULL,
+    RouteMatchInterface $routeMatch = NULL
   ) {
     parent::__construct(
       $propertyNameCollectionFactory,
@@ -100,6 +108,7 @@ final class ItemNormalizer extends AbstractItemNormalizer {
     $this->requestStack = $requestStack;
     $this->entityExtractor = $entityExtractor;
     $this->classResolver = $classResolver;
+    $this->routeMatch = $routeMatch;
   }
 
   /**
@@ -279,33 +288,14 @@ final class ItemNormalizer extends AbstractItemNormalizer {
         )))) {
       return $data;
     }
-    $bundleKey = $this->resourceClassResolver->getBundleKey(
-      $context['resource_class']
+
+    $data = $this->addEntityBundleKey($data, $context);
+    $data = array_map(
+      function ($item) {
+        return is_array($item) ? $item : [$item];
+      },
+      $data
     );
-
-    if ($this->requestStack->getCurrentRequest()->query->has(
-      $bundleKey
-    )) {
-      $targetBundle = $this->requestStack->getCurrentRequest()->query->get(
-        $bundleKey
-      );
-      $context['bundle'] = $targetBundle;
-      $fieldStorageDefinition = $this->entityExtractor->getField(
-        $bundleKey,
-        $context
-      );
-      $targetIdKey = $fieldStorageDefinition ? $fieldStorageDefinition->getFieldStorageDefinition(
-      )->getMainPropertyName() : 'value';
-      $data[$bundleKey][0][$targetIdKey] = $targetBundle;
-
-      $data = array_map(
-        function ($item) {
-          return is_array($item) ? $item : [$item];
-        },
-        $data
-      );
-
-    }
 
     if ($this->isUpdating($context)) {
       $idKey = $this->resourceClassResolver->getIdKey(
@@ -369,6 +359,50 @@ final class ItemNormalizer extends AbstractItemNormalizer {
         }
       }
     }
+    return $data;
+  }
+
+  /**
+   * @param array $context
+   *
+   * @return string|null
+   */
+  private function getBundleName(array $context): ?string {
+    /** @var \Symfony\Component\Routing\Route $route */
+    $route = $this->routeMatch->getRouteObject();
+
+    if ($route->hasDefault(RouteProviderSubscriber::DEFAULT_ROUTE_BUNDLE_KEY)) {
+      $targetBundle = $route->getDefault(
+        RouteProviderSubscriber::DEFAULT_ROUTE_BUNDLE_KEY
+      );
+    }
+    elseif (isset($context['object_to_populate']) && $context['object_to_populate'] instanceof EntityInterface) {
+      $targetBundle = $context['object_to_populate']->bundle();
+    }
+    return $targetBundle ?? NULL;
+  }
+
+  /**
+   * @param $data
+   * @param array $context
+   *
+   * @return array
+   */
+  private function addEntityBundleKey($data, array $context): array {
+    $bundleKey = $this->resourceClassResolver->getBundleKey(
+      $context['resource_class']
+    );
+    $targetBundle = $this->getBundleName($context);
+    $context['bundle'] = $targetBundle;
+
+    $fieldStorageDefinition = $this->entityExtractor->getField(
+      $bundleKey,
+      $context
+    );
+    $targetIdKey = $fieldStorageDefinition ? $fieldStorageDefinition->getFieldStorageDefinition(
+    )->getMainPropertyName() : 'value';
+    $data[$bundleKey][0][$targetIdKey] = $targetBundle;
+
     return $data;
   }
 

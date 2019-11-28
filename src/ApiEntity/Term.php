@@ -4,6 +4,14 @@
 //*   normalizationContext={"groups"={"term:read"}},
 //*   denormalizationContext={"groups"={"term:write"}}
 
+//*   itemOperations={
+//  *   "get"={"path"="/categories/{tid}"},
+// *   "put",
+// *   "delete"
+//  *   }
+
+//*   shortName="Boxer",
+
 namespace Drupal\api_platform\ApiEntity;
 
 
@@ -28,12 +36,6 @@ use Symfony\Component\Serializer\Annotation\Groups;
  * Wraps the taxonomy term entity.
  *
  * @ApiResource(
- *   shortName="Boxer",
- *   itemOperations={
- *   "get"={"path"="/categories/{tid}"},
- *   "put",
- *   "delete"
- *   }
  * )
  * @ApiEntity(
  *   entity_class = "Drupal\taxonomy\Entity\Term"

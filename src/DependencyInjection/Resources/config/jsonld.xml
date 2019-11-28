@@ -59,6 +59,7 @@
               <argument type="collection" />
               <argument type="tagged" tag="api_platform.data_transformer" on-invalid="ignore" />
               <argument type="service" id="class_resolver"/>
+                <argument type="service" id="current_route_match" />
 
               <!-- Run after serializer.normalizer.data_uri but before serializer.normalizer.object -->
 <!--              <tag name="normalizer" priority="-922" />-->
