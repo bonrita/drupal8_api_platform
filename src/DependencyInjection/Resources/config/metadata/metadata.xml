@@ -39,6 +39,30 @@
         <argument type="service" id="api_platform.metadata.resource.metadata_factory.wrapped_entity.inner" />
       </service>
 
+      <service id="api_platform.metadata.property.name_collection_factory.inherited" class="Drupal\api_platform\Core\Metadata\Property\Factory\InheritedPropertyNameCollectionFactory" decorates="api_platform.metadata.property.name_collection_factory" decoration-priority="10" public="false">
+        <argument type="service" id="api_platform.metadata.resource.name_collection_factory" />
+        <argument type="service" id="api_platform.metadata.property.name_collection_factory.inherited.inner" />
+      </service>
+
+      <service id="api_platform.metadata.property.metadata_factory.serializer" class="Drupal\api_platform\Core\Metadata\Property\Factory\SerializerPropertyMetadataFactory" decorates="api_platform.metadata.property.metadata_factory" decoration-priority="30" public="false">
+        <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
+        <argument type="service" id="serializer.mapping.class_metadata_factory" />
+        <argument type="service" id="api_platform.metadata.property.metadata_factory.serializer.inner" />
+        <argument type="service" id="api_platform.resource_class_resolver" />
+        <argument type="service" id="api_platform.property_info_entity_extractor" />
+      </service>
+
+      <service id="api_platform.metadata.property.metadata_factory.inherited" class="Drupal\api_platform\Core\Metadata\Property\Factory\InheritedPropertyMetadataFactory" decorates="api_platform.metadata.property.metadata_factory" decoration-priority="40" public="false">
+        <argument type="service" id="api_platform.metadata.resource.name_collection_factory" />
+        <argument type="service" id="api_platform.metadata.property.metadata_factory.inherited.inner" />
+      </service>
+
+      <service id="api_platform.metadata.non_entity_field.metadata_factory.serializer" class="Drupal\api_platform\Core\Metadata\Property\Factory\NonEntityFieldMetadataFactory" decorates="api_platform.metadata.property.metadata_factory" decoration-priority="15" public="false">
+        <argument type="service" id="api_platform.metadata.non_entity_field.metadata_factory.serializer.inner" />
+        <argument type="service" id="api_platform.resource_class_resolver" />
+        <argument type="service" id="class_resolver" />
+      </service>
+
     </services>
 
 </container>

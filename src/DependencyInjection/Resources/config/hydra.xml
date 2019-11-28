@@ -6,6 +6,19 @@
 
     <services>
 
+      <service id="api_platform.hydra.normalizer.documentation" class="Drupal\api_platform\Core\Hydra\Serializer\DocumentationNormalizer" public="false">
+        <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
+        <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
+        <argument type="service" id="api_platform.metadata.property.metadata_factory" />
+        <argument type="service" id="api_platform.resource_class_resolver" />
+        <argument type="service" id="api_platform.operation_method_resolver" />
+        <argument type="service" id="api_platform.router" />
+        <argument type="service" id="api_platform.subresource_operation_factory" />
+        <argument type="service" id="api_platform.name_converter" on-invalid="ignore" />
+
+        <tag name="normalizer" priority="-800" />
+      </service>
+
         <service id="api_platform.hydra.normalizer.entrypoint" class="Drupal\api_platform\Core\Hydra\Serializer\EntrypointNormalizer" public="false">
             <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
             <argument type="service" id="api_platform.iri_converter" />

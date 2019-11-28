@@ -100,4 +100,73 @@ abstract class AbstractItemNormalizer extends AbstractObjectNormalizer {
     return $this->resourceClassResolver->isResourceClass($this->getObjectClass($data));
   }
 
+  /**
+   * Gets and caches attributes for the given object, format and context.
+   *
+   * @param object      $object
+   * @param string|null $format
+   * @param array       $context
+   *
+   * @return string[]
+   */
+  protected function getAttributes($object, $format = null, array $context)
+  {
+    $allowedAttributes = $this->getAllowedAttributes($object, $context, true);
+    return $allowedAttributes;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getAllowedAttributes($classOrObject, array $context, $attributesAsString = false)
+  {
+    $options = $this->getFactoryOptions($context);
+    $propertyNames = $this->propertyNameCollectionFactory->create($context['resource_class'], $options);
+
+    $allowedAttributes = [];
+    foreach ($propertyNames as $propertyName) {
+      $propertyMetadata = $this->propertyMetadataFactory->create($context['resource_class'], $propertyName, $options);
+
+      if (
+        $this->isAllowedAttribute($classOrObject, $propertyName, null, $context) &&
+        (
+          isset($context['api_normalize']) && $propertyMetadata->isReadable() ||
+          isset($context['api_denormalize']) && ($propertyMetadata->isWritable() || !\is_object($classOrObject) && $propertyMetadata->isInitializable())
+        )
+      ) {
+        $allowedAttributes[] = $propertyName;
+      }
+    }
+
+    return $allowedAttributes;
+  }
+
+  /**
+   * Gets a valid context for property metadata factories.
+   *
+   * @see https://github.com/symfony/symfony/blob/master/src/Symfony/Component/PropertyInfo/Extractor/SerializerExtractor.php
+   */
+  protected function getFactoryOptions(array $context): array
+  {
+    $options = [];
+
+    if (isset($context[self::GROUPS])) {
+      $options['serializer_groups'] = $context[self::GROUPS];
+    }
+
+    if (isset($context['collection_operation_name'])) {
+      $options['collection_operation_name'] = $context['collection_operation_name'];
+    }
+
+    if (isset($context['item_operation_name'])) {
+      $options['item_operation_name'] = $context['item_operation_name'];
+    }
+
+    if (isset($context['entity_class'])) {
+      $options['entity_class'] = $context['entity_class'];
+    }
+
+    return $options;
+  }
+
 }

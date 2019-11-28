@@ -15,7 +15,9 @@
       <argument type="service" id="api_platform.resource_class_resolver"  />
       <argument>%api_platform.formats%</argument>
       <argument>%api_platform.resource_class_directories%</argument>
+      <argument type="service" id="api_platform.subresource_operation_factory" />
       <argument>%api_platform.enable_entrypoint%</argument>
+      <argument>%api_platform.enable_docs%</argument>
 
 
       <tag name="event_subscriber"/>
@@ -27,6 +29,7 @@
       <argument type="service" id="entity_field.manager" />
       <argument type="service" id="plugin.manager.field.field_type" />
       <argument type="service" id="api_platform.resource_class_resolver" />
+      <argument type="service" id="property_info.reflection_extractor" />
 
       <tag name="property_info.list_extractor"/>
       <tag name="property_info.type_extractor" />
@@ -47,11 +50,25 @@
       <tag name="api_platform.collection_data_provider" />
     </service>
 
+    <service id="api_platform.serializer.mapping.annotation_loader" class="Drupal\api_platform\Core\Serializer\Mapping\Loader\AnnotationLoader">
+      <argument type="service" id="annotations.reader" />
+      <argument type="service" id="class_resolver" />
+    </service>
+
+
     <!--    Path processors-->
 <!--    <service id="api_platform.path_processor" class="Drupal\api_platform\PathProcessor\PathProcessor">-->
 <!--      <tag name="path_processor_outbound" priority="400"/>-->
 <!--    </service>-->
 
+<!--    Decorators-->
+  <service id="api_platform.property_info.entity_extractor" class="Drupal\api_platform\Core\PropertyInfo\Extractor\EntityPropertyInfoExtractor" decorates="property_info.php_doc_extractor">
+    <argument type="service" id="api_platform.property_info.entity_extractor.inner" />
+    <argument type="service" id="annotations.reader" />
+    <argument type="service" id="api_platform.resource_class_resolver" />
+    <argument type="service" id="class_resolver" />
+    <argument type="service" id="api_platform.property_info_entity_extractor" />
+  </service>
   </services>
 
 </container>

@@ -16,6 +16,6 @@ interface SubresourceOperationFactoryInterface {
   /**
    * Creates subresource operations.
    */
-  public function create(string $resourceClass): array;
+  public function create(string $resourceClass, array $options = []): array;
 
 }

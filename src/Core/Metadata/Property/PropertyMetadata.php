@@ -24,6 +24,7 @@ final class PropertyMetadata {
   private $attributes;
   private $subresource;
   private $initializable;
+  private $nonEntityField;
 
   public function __construct(Type $type = null, string $description = null, bool $readable = null, bool $writable = null, bool $readableLink = null, bool $writableLink = null, bool $required = null, bool $identifier = null, string $iri = null, $childInherited = null, array $attributes = null, SubresourceMetadata $subresource = null, bool $initializable = null)
   {
@@ -332,4 +333,22 @@ final class PropertyMetadata {
 
     return $metadata;
   }
+
+  /**
+   * Check if the field is a non Drupal field.
+   *
+   * If it is a custom field added on the resource class wrapper.
+   *
+   * @return bool|null
+   */
+  public function isNonEntityField(): ?bool {
+    return $this->nonEntityField;
+  }
+
+  public function withNonEntityField(bool $nonEntityField): self {
+    $metadata = clone $this;
+    $metadata->nonEntityField = $nonEntityField;
+    return $metadata;
+  }
+
 }

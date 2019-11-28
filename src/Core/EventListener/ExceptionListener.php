@@ -28,13 +28,6 @@ final class ExceptionListener implements EventSubscriberInterface {
         $request = $event->getRequest();
         // Normalize exceptions only for routes managed by API Platform
 
-      $gg = RequestAttributesExtractor::extractAttributes($request);
-      $ff = $request->attributes->getBoolean('_api_respond', false);
-      $ee = $request->getRequestFormat('');
-      $uu = (RequestAttributesExtractor::extractAttributes($request)['respond'] ?? $request->attributes->getBoolean('_api_respond', false));
-      $gg = $request->attributes->getBoolean('_graphql', false);
-      $rr = RequestAttributesExtractor::extractAttributes($request)['respond'];
-
         if (
             'html' === $request->getRequestFormat('') ||
             !((RequestAttributesExtractor::extractAttributes($request)['respond'] ?? $request->attributes->getBoolean('_api_respond', false)) || $request->attributes->getBoolean('_graphql', false))

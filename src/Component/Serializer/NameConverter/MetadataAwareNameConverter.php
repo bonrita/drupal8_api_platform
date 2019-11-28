@@ -79,7 +79,11 @@ final class MetadataAwareNameConverter implements AdvancedNameConverterInterface
       return null;
     }
 
-    return $attributesMetadata[$propertyName]->getSerializedName() ?? null;
+    if(method_exists($attributesMetadata[$propertyName], 'getSerializedName')) {
+      return $attributesMetadata[$propertyName]->getSerializedName() ?? null;
+    } else {
+      return NULL;
+    }
   }
 
   private function normalizeFallback($propertyName, string $class = null, string $format = null, array $context = [])

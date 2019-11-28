@@ -65,7 +65,7 @@
             Available formats:
             {% for format in data.formats|keys %}
 {#              {{ devel_breakpoint() }}#}
-                <a href="{{ path(request.attributes.get('_route'), request.attributes.get('_route_params')|merge({'_format': format, '_format_route': true, '_route_format' : format})) }}">{{ format }}</a>
+{#                <a href="{{ path(request.attributes.get('_route'), request.attributes.get('_route_params')|merge({'_format': format, '_format_route': true, '_route_format' : format})) }}">{{ format }}</a>#}
             {% endfor %}
             <br>
             Other API docs:

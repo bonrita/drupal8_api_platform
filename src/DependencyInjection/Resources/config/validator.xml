@@ -1,0 +1,16 @@
+<?xml version="1.0" ?>
+
+<container xmlns="http://symfony.com/schema/dic/services"
+           xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+           xsi:schemaLocation="http://symfony.com/schema/dic/services http://symfony.com/schema/dic/services/services-1.0.xsd">
+
+  <services>
+
+<!--    <service id="api_platform.metadata.property.metadata_factory.validator" class="Drupal\api_platform\Core\Validator\Metadata\Property\ValidatorPropertyMetadataFactory" decorates="api_platform.metadata.property.metadata_factory" decoration-priority="20" public="false">-->
+<!--      <argument type="service" id="validator" />-->
+<!--      <argument type="service" id="api_platform.metadata.property.metadata_factory.validator.inner" />-->
+<!--    </service>-->
+
+  </services>
+
+</container>

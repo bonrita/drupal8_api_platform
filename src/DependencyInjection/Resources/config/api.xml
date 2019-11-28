@@ -73,7 +73,6 @@
     <service id="api_platform.subresource_operation_factory" class="Drupal\api_platform\Core\Operation\Factory\SubresourceOperationFactory" public="false">
       <argument type="service" id="api_platform.metadata.resource.metadata_factory" />
       <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
-      <argument type="service" id="api_platform.metadata.property.name_collection_factory" />
       <argument type="service" id="api_platform.metadata.property.metadata_factory" />
       <argument type="service" id="api_platform.path_segment_name_generator" />
     </service>
@@ -215,6 +214,14 @@
       <argument type="service" id="api_platform.serializer" />
       <argument>%api_platform.error_formats%</argument>
       <argument>%api_platform.exception_to_status%</argument>
+    </service>
+
+    <service id="api_platform.action.documentation" class="Drupal\api_platform\Core\Documentation\Action\DocumentationAction" public="true">
+      <argument type="service" id="api_platform.metadata.resource.name_collection_factory" />
+      <argument>%api_platform.title%</argument>
+      <argument>%api_platform.description%</argument>
+      <argument>%api_platform.version%</argument>
+      <argument type="service" id="api_platform.formats_provider" />
     </service>
 
   </services>

@@ -15,6 +15,7 @@ use Drupal\api_platform\Core\Serializer\AbstractItemNormalizer;
 use Drupal\api_platform\Core\Serializer\ContextTrait;
 use Drupal\api_platform\Core\Util\ClassInfoTrait;
 use Drupal\api_platform\PropertyInfo\Extractor\EntityExtractor;
+use Drupal\Core\DependencyInjection\ClassResolverInterface;
 use Drupal\Core\Entity\ContentEntityBase;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Entity\Exception\NoCorrespondingEntityClassException;
@@ -55,6 +56,11 @@ final class ItemNormalizer extends AbstractItemNormalizer {
    */
   private $entityExtractor;
 
+  /**
+   * @var \Drupal\Core\DependencyInjection\ClassResolverInterface
+   */
+  private $classResolver;
+
   public function __construct(
     ResourceMetadataFactoryInterface $resourceMetadataFactory,
     PropertyNameCollectionFactoryInterface $propertyNameCollectionFactory,
@@ -69,7 +75,8 @@ final class ItemNormalizer extends AbstractItemNormalizer {
     NameConverterInterface $nameConverter = NULL,
     ClassMetadataFactoryInterface $classMetadataFactory = NULL,
     array $defaultContext = [],
-    iterable $dataTransformers = []
+    iterable $dataTransformers = [],
+    ClassResolverInterface $classResolver = NULL
   ) {
     parent::__construct(
       $propertyNameCollectionFactory,
@@ -92,13 +99,27 @@ final class ItemNormalizer extends AbstractItemNormalizer {
 
     $this->requestStack = $requestStack;
     $this->entityExtractor = $entityExtractor;
+    $this->classResolver = $classResolver;
   }
 
   /**
    * {@inheritdoc}
    */
   public function supportsNormalization($data, $format = NULL): bool {
-    return self::FORMAT === $format && $this->decorated->supportsNormalization($data, $format);
+    return self::FORMAT === $format && $this->decorated->supportsNormalization(
+        $data,
+        $format
+      );
+  }
+
+  private function isUpdating(array $context): bool {
+    return (isset($context['item_operation_name'], $context['resource_class'])
+      && 'put' === $context['item_operation_name']);
+  }
+
+  private function isCreating(array $context): bool {
+    return (isset($context['collection_operation_name'], $context['resource_class'])
+      && 'post' === $context['collection_operation_name']);
   }
 
   public function denormalize(
@@ -110,37 +131,29 @@ final class ItemNormalizer extends AbstractItemNormalizer {
 
     $this->decorated->setSerializer($this->serializer);
 
-//    $data = is_object($data)
+    //    $data = is_object($data)
 
-    if (is_array($data) && isset($context['collection_operation_name'], $context['resource_class'])
-      && 'post' === $context['collection_operation_name']) {
-      $bundleKey = $this->resourceClassResolver->getBundleKey(
-        $context['resource_class']
-      );
-
-      if ($this->requestStack->getCurrentRequest()->query->has(
-        $bundleKey
-      )) {
-        $targetBundle = $this->requestStack->getCurrentRequest(
-        )->query->get($bundleKey);
-        $context['bundle'] = $targetBundle;
-        $fieldStorageDefinition = $this->entityExtractor->getField($bundleKey, $context);
-        $targetIdKey = $fieldStorageDefinition ? $fieldStorageDefinition->getFieldStorageDefinition()->getMainPropertyName() : 'value';
-        $data[$bundleKey][0][$targetIdKey] = $targetBundle;
-
-        $data = array_map(function ($item) {
-          return is_array($item) ? $item : [$item];
-        }, $data);
-
-      }
-    }
+    $data = $this->prepareData($data, $context);
 
     try {
       if (is_a($type, ApiEntityInterface::class, TRUE)) {
-        $actualEntityClass = $this->resourceClassResolver->getActualResourceClass($type);
-        $result = $this->decorated->denormalize($data, $actualEntityClass, $format, $context);
-      } else {
-        $result = $this->decorated->denormalize($data, $type, $format, $context);
+        $actualEntityClass = $this->resourceClassResolver->getActualResourceClass(
+          $type
+        );
+        $result = $this->decorated->denormalize(
+          $data,
+          $actualEntityClass,
+          $format,
+          $context
+        );
+      }
+      else {
+        $result = $this->decorated->denormalize(
+          $data,
+          $type,
+          $format,
+          $context
+        );
       }
     } catch (NoCorrespondingEntityClassException $e) {
       return $data;
@@ -189,6 +202,27 @@ final class ItemNormalizer extends AbstractItemNormalizer {
 
     $data = $this->flattenValues($object, $data);
 
+    // Add custom fields that were added on the resource class wrapper.
+    $data = $this->addCustomFields($object, $context, $resourceClass, $data);
+
+    // Remove fields not defined in groups.
+    if (isset($context['groups'])) {
+      $context['entity_class'] = TRUE;
+      $attributes = $this->getAttributes($object, $format, $context);
+
+      array_walk(
+        $data,
+        function (&$value, $key, $attrs) {
+          if (!in_array($key, $attrs)) {
+            $value = NULL;
+          }
+        },
+        $attributes
+      );
+      $data = array_filter($data);
+    }
+
+
     $resourceMetadata = $this->resourceMetadataFactory->create($resourceClass);
 
     $metadata['@id'] = $iri;
@@ -233,5 +267,109 @@ final class ItemNormalizer extends AbstractItemNormalizer {
     return $results;
   }
 
+  /**
+   * @param $data
+   * @param array $context
+   *
+   * @return mixed
+   */
+  private function prepareData($data, array $context) {
+    if (!(is_array($data) && ($this->isUpdating($context) || $this->isCreating(
+          $context
+        )))) {
+      return $data;
+    }
+    $bundleKey = $this->resourceClassResolver->getBundleKey(
+      $context['resource_class']
+    );
+
+    if ($this->requestStack->getCurrentRequest()->query->has(
+      $bundleKey
+    )) {
+      $targetBundle = $this->requestStack->getCurrentRequest()->query->get(
+        $bundleKey
+      );
+      $context['bundle'] = $targetBundle;
+      $fieldStorageDefinition = $this->entityExtractor->getField(
+        $bundleKey,
+        $context
+      );
+      $targetIdKey = $fieldStorageDefinition ? $fieldStorageDefinition->getFieldStorageDefinition(
+      )->getMainPropertyName() : 'value';
+      $data[$bundleKey][0][$targetIdKey] = $targetBundle;
+
+      $data = array_map(
+        function ($item) {
+          return is_array($item) ? $item : [$item];
+        },
+        $data
+      );
+
+    }
+
+    if ($this->isUpdating($context)) {
+      $idKey = $this->resourceClassResolver->getIdKey(
+        $context['resource_class']
+      );
+      if ($this->requestStack->getCurrentRequest()->attributes->has($idKey)) {
+        $id = $this->requestStack->getCurrentRequest()->attributes->getInt(
+          $idKey
+        );
+        if ($id > 0) {
+          $data[$idKey] = [$id];
+        }
+      }
+    }
+
+    return $data;
+  }
+
+  /**
+   * @param $object
+   * @param array $context
+   * @param string $resourceClass
+   * @param $data
+   *
+   * @return array
+   * @throws \Drupal\api_platform\Core\Exception\PropertyNotFoundException
+   * @throws \ReflectionException
+   */
+  private function addCustomFields(
+    $object,
+    array $context,
+    string $resourceClass,
+    $data
+  ): array {
+    $resourceClassInstance = $this->classResolver->getInstanceFromDefinition(
+      $resourceClass
+    );
+    $options = [
+      'entity_class' => $object instanceof EntityInterface,
+      'bundle' => $object instanceof EntityInterface ? $object->bundle() : '',
+    ];
+    $context['object'] = $object;
+    $context['data'] = $data;
+    $reflectionClass = new \ReflectionClass($resourceClass);
+
+    foreach ($reflectionClass->getProperties() as $property) {
+      $propertyMetadata = $this->propertyMetadataFactory->create(
+        $resourceClass,
+        $property->getName(),
+        $options
+      );
+      $methodName = 'get' . ucfirst($property->getName());
+      if ($propertyMetadata->isReadable() && $reflectionClass->hasMethod(
+          $methodName
+        )) {
+        $method = new \ReflectionMethod($resourceClass, $methodName);
+        if ($method && $method->isPublic()) {
+          $data[$property->getName()] = $resourceClassInstance->{$methodName}(
+            $context
+          );
+        }
+      }
+    }
+    return $data;
+  }
 
 }

@@ -25,6 +25,11 @@
       <argument type="service" id="api_platform.metadata.extractor.xml" />
     </service>
 
+    <service id="api_platform.metadata.property.name_collection_factory.xml" class="Drupal\api_platform\Core\Metadata\Property\Factory\ExtractorPropertyNameCollectionFactory" decorates="api_platform.metadata.property.name_collection_factory" public="false">
+      <argument type="service" id="api_platform.metadata.extractor.xml" />
+      <argument type="service" id="api_platform.metadata.property.name_collection_factory.xml.inner" />
+    </service>
+
   </services>
 
 </container>

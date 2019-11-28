@@ -160,6 +160,18 @@ class ResourceClassResolver implements ResourceClassResolverInterface {
   }
 
   /**
+   * {@inheritdoc}
+   */
+  public function isEntityTypeClass(string $resourceClass) : bool {
+    try{
+      $this->entityTypeRepository->getEntityTypeFromClass($resourceClass);
+      return TRUE;
+    } catch (\Exception $e) {
+      return FALSE;
+    }
+  }
+
+  /**
    * {@inheritDoc}
    */
   public function getActualResourceClass(string $resourceClass): ?string {

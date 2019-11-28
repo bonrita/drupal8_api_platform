@@ -4,6 +4,7 @@ declare(strict_types=1);
 namespace Drupal\api_platform\Routing;
 
 use Drupal\api_platform\Core\Api\ResourceClassResolverInterface;
+use Drupal\api_platform\Core\Operation\Factory\SubresourceOperationFactoryInterface;
 use Drupal\api_platform\Core\PathResolver\OperationPathResolverInterface;
 use Drupal\api_platform\Core\Routing\RouteNameGenerator;
 use Drupal\api_platform\Core\Exception\RuntimeException;
@@ -74,6 +75,16 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
    */
   private $resourceClassResolver;
 
+  /**
+   * @var \Drupal\api_platform\Core\Operation\Factory\SubresourceOperationFactoryInterface
+   */
+  private $subresourceOperationFactory;
+
+  /**
+   * @var bool
+   */
+  private $docsEnabled;
+
 
   public function __construct(
     ResourceNameCollectionFactoryInterface $resourceNameCollectionFactory,
@@ -83,7 +94,9 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
     ResourceClassResolverInterface $resourceClassResolver,
     array $formats,
     array $resourceClassDirectories = [],
-    bool $entrypointEnabled = TRUE
+    SubresourceOperationFactoryInterface $subresourceOperationFactory = null,
+    bool $entrypointEnabled = TRUE,
+    bool $docsEnabled = true
   ) {
     $this->fileLoader = new XmlFileLoader(
       new FileLocator(
@@ -99,6 +112,8 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
     $this->container = $container;
     $this->operationPathResolver = $operationPathResolver;
     $this->resourceClassResolver = $resourceClassResolver;
+    $this->subresourceOperationFactory = $subresourceOperationFactory;
+    $this->docsEnabled = $docsEnabled;
   }
 
   /**
@@ -162,6 +177,19 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
         }
       }
 
+      if (null === $this->subresourceOperationFactory) {
+        continue;
+      }
+
+      $context = [];
+//      $context['entity_class'] = TRUE;
+//      $context['bundle'] = 'api_platform';
+      foreach ($this->subresourceOperationFactory->create($resourceClass, $context) as $operationId => $operation) {
+$gg =0;
+      }
+      // -------
+
+
     }
 
     $routeCollection->addCollection($collection);
@@ -179,6 +207,10 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
 
     if (isset($this->formats['jsonld'])) {
       $routeCollection->addCollection($this->fileLoader->load('jsonld.xml'));
+    }
+
+    if ($this->docsEnabled) {
+      $routeCollection->addCollection($this->fileLoader->load('docs.xml'));
     }
 
   }
@@ -242,6 +274,8 @@ final class RouteProviderSubscriber implements EventSubscriberInterface {
       $resourceClass,
       $operationName
     );
+
+    // @todo Add bundle name to path.
 
     $route = new Route(
       $path,

@@ -17,6 +17,7 @@ use Drupal\Core\TypedData\DataDefinitionInterface;
 use Drupal\Core\TypedData\TypedDataManagerInterface;
 use Drupal\field\Entity\FieldStorageConfig;
 use Drupal\field\FieldStorageConfigInterface;
+use Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor;
 use Symfony\Component\PropertyInfo\PropertyAccessExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyListExtractorInterface;
 use Symfony\Component\PropertyInfo\PropertyTypeExtractorInterface;
@@ -56,31 +57,45 @@ class EntityExtractor implements PropertyListExtractorInterface, PropertyTypeExt
    */
   private $resourceClassResolver;
 
+  /**
+   * @var \Symfony\Component\PropertyInfo\Extractor\ReflectionExtractor
+   */
+  private $reflectionExtractor;
+
   public function __construct(
     EntityTypeManagerInterface $entityTypeManager,
     EntityTypeRepositoryInterface $entityTypeRepository,
     EntityFieldManagerInterface $entityFieldManager,
     FieldTypePluginManagerInterface $fieldTypePluginManager,
-    ResourceClassResolverInterface $resourceClassResolver
+    ResourceClassResolverInterface $resourceClassResolver,
+    ReflectionExtractor $reflectionExtractor
   ) {
     $this->entityTypeManager = $entityTypeManager;
     $this->entityTypeRepository = $entityTypeRepository;
     $this->entityFieldManager = $entityFieldManager;
     $this->fieldTypePluginManager = $fieldTypePluginManager;
     $this->resourceClassResolver = $resourceClassResolver;
+    $this->reflectionExtractor = $reflectionExtractor;
   }
 
   /**
    * @inheritDoc
    */
   public function getProperties($class, array $context = []) {
+    // || isset($context['serializer_groups'])
     if (!isset($context['entity_class']) || !\is_bool(
         $context['entity_class']
       )) {
       return NULL;
     }
 
-    return array_keys($this->getFields($class, $context));
+    $properties = array_keys($this->getFields($class, $context));
+
+    if (!$this->resourceClassResolver->isEntityTypeClass($class)) {
+      $properties = array_merge($properties, $this->reflectionExtractor->getProperties($class, $context));
+    }
+
+    return $properties;
   }
 
   /**
@@ -94,22 +109,27 @@ class EntityExtractor implements PropertyListExtractorInterface, PropertyTypeExt
     }
 
     $fieldStorageDefinition = $this->getFields($class, $context)[$property];
-    $builtInType = $this->getBuiltInType($fieldStorageDefinition);
 
-    if ($fieldStorageDefinition->isMultiple()) {
-      $type = [
-        new Type(
-          Type::BUILTIN_TYPE_ARRAY,
-          FALSE,
-          NULL,
-          TRUE,
-          new Type(Type::BUILTIN_TYPE_INT),
-          new Type($builtInType)
-        ),
-      ];
-    }
-    else {
-      $type = [new Type($builtInType)];
+    if ($fieldStorageDefinition) {
+      $builtInType = $this->getBuiltInType($fieldStorageDefinition);
+
+      if ($fieldStorageDefinition->isMultiple()) {
+        $type = [
+          new Type(
+            Type::BUILTIN_TYPE_ARRAY,
+            FALSE,
+            NULL,
+            TRUE,
+            new Type(Type::BUILTIN_TYPE_INT),
+            new Type($builtInType)
+          ),
+        ];
+      }
+      else {
+        $type = [new Type($builtInType)];
+      }
+    } else {
+      $type = $this->reflectionExtractor->getTypes($class, $property, $context);
     }
 
     return $type;
@@ -128,12 +148,16 @@ class EntityExtractor implements PropertyListExtractorInterface, PropertyTypeExt
     $context['resource_class'] = $class;
     $field =  $this->getField($property, $context);
 
-    if ($field->isBaseField() && !$field->isInternal()) {
-     return TRUE;
-    }
+    if (!is_object($field)) {
+      return $this->reflectionExtractor->isReadable($class, $property, $context);
+    } else {
+      if ($field->isBaseField() && !$field->isInternal()) {
+        return TRUE;
+      }
 
-    if (!$field->isBaseField()) {
-      return TRUE;
+      if (!$field->isBaseField()) {
+        return TRUE;
+      }
     }
 
     return FALSE;
@@ -146,6 +170,12 @@ class EntityExtractor implements PropertyListExtractorInterface, PropertyTypeExt
     if($this->resourceClassResolver->getIdKey($class) === $property) {
       return FALSE;
     }
+    $context['resource_class'] = $class;
+    $field =  $this->getField($property, $context);
+    if (!is_object($field)) {
+      return $this->reflectionExtractor->isWritable($class, $property, $context);
+    }
+
     return TRUE;
   }
 
@@ -187,13 +217,14 @@ class EntityExtractor implements PropertyListExtractorInterface, PropertyTypeExt
    * @param string $resourceClass
    * @param array $context
    *
-   * @return \Drupal\Core\Field\FieldStorageDefinitionInterface
+   * @return \Drupal\Core\Field\FieldStorageDefinitionInterface | string
    */
   public function getField(
     string $fieldName,
     array $context
-  ): FieldStorageDefinitionInterface {
-    return $this->getFields($context['resource_class'], $context)[$fieldName];
+  ) {
+    $field = $this->getFields($context['resource_class'], $context)[$fieldName];
+    return  $field ?? $fieldName;
   }
 
   private function getFields(string $resourceClass, array $context): array {

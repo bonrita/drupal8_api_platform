@@ -77,4 +77,15 @@ interface ResourceClassResolverInterface
    */
   public function getActualResourceClass(string $resourceClass): ?string;
 
+  /**
+   * Check if it is a resource class.
+   *
+   * @param string $resourceClass
+   *   The resource class.
+   *
+   * @return bool
+   *   True/false
+   */
+  public function isEntityTypeClass(string $resourceClass) : bool;
+
 }

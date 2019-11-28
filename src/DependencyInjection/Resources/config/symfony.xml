@@ -33,14 +33,24 @@
       <tag name="property_info.initializable_extractor" priority="-1000"/>
     </service>
 
+    <service id="property_info.php_doc_extractor" class="Symfony\Component\PropertyInfo\Extractor\PhpDocExtractor">
+      <tag name="property_info.description_extractor" priority="-1000"/>
+      <tag name="property_info.type_extractor" priority="-1001"/>
+    </service>
+
     <service id="serializer.mapping.class_metadata_factory" class="Symfony\Component\Serializer\Mapping\Factory\ClassMetadataFactory" public="false">
-      <argument type="service" id="serializer.mapping.chain_loader"/>
+<!--      <argument type="service" id="serializer.mapping.chain_loader"/>-->
+      <argument type="service" id="api_platform.serializer.mapping.annotation_loader"/>
       <argument>null</argument>
     </service>
 
     <service id="serializer.mapping.chain_loader" class="Symfony\Component\Serializer\Mapping\Loader\LoaderChain" public="false">
       <argument type="collection"/>
     </service>
+
+<!--    <service id="api_platform.serializer.mapping.annotation_loader" class="Symfony\Component\Serializer\Mapping\Loader\AnnotationLoader">-->
+<!--      <argument type="service" id="annotations.reader" />-->
+<!--    </service>-->
 
     <service id="property_accessor" class="Symfony\Component\PropertyAccess\PropertyAccessor" public="false">
       <argument>false</argument>
