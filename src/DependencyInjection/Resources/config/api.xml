@@ -207,7 +207,7 @@
     <service id="api_platform.action.post_collection" class="Drupal\api_platform\Core\Action\PostCollectionAction" public="true" />
     <service id="api_platform.action.get_item" alias="api_platform.action.placeholder" public="true" />
     <service id="api_platform.action.patch_item" alias="api_platform.action.placeholder" public="true" />
-    <service id="api_platform.action.put_item" alias="api_platform.action.placeholder" public="true" />
+    <service id="api_platform.action.put_item" class="Drupal\api_platform\Core\Action\PostCollectionAction" public="true" />
     <service id="api_platform.action.delete_item" alias="api_platform.action.placeholder" public="true" />
 
     <service id="api_platform.action.exception" class="Drupal\api_platform\Core\Action\ExceptionAction" public="true">

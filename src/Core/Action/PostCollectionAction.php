@@ -15,6 +15,10 @@ class PostCollectionAction {
    * @return object
    */
   public function __invoke(EntityInterface $data) {
+    if (NULL !== $data->id()) {
+      $data->enforceIsNew(FALSE);
+    }
+
     $data->save();
     return $data;
   }
